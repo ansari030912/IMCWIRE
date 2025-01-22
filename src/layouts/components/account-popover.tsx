@@ -1,15 +1,17 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import type { IconButtonProps } from '@mui/material/IconButton';
 
+import Cookies from 'js-cookie';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import Popover from '@mui/material/Popover';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Popover from '@mui/material/Popover';
 import MenuList from '@mui/material/MenuList';
-import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { useRouter, usePathname } from 'src/routes/hooks';
@@ -49,6 +51,21 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     },
     [handleClosePopover, router]
   );
+  const handleLogout = () => {
+    // Retrieve user data from cookies
+    const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
+
+    if (userData) {
+      // Set isLogin to false while keeping user data
+      userData.isLogin = false;
+
+      // Save updated user data back to cookies
+      Cookies.set('userData', JSON.stringify(userData), { expires: 7 });
+
+      // Redirect to login page
+      window.location.href = '/login';
+    }
+  };
 
   return (
     <>
@@ -129,7 +146,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box sx={{ p: 1 }}>
-          <Button fullWidth color="error" size="medium" variant="text">
+          <Button onClick={handleLogout} fullWidth color="error" size="medium" variant="text">
             Logout
           </Button>
         </Box>

@@ -1,6 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
-
-import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -13,7 +14,7 @@ import { Iconify } from 'src/components/iconify';
 import { Main } from './main';
 import { layoutClasses } from '../classes';
 import { NavMobile, NavDesktop } from './nav';
-import { navData } from '../config-nav-dashboard';
+import { userNavData, adminNavData } from '../config-nav-dashboard';
 import { _workspaces } from '../config-nav-workspace';
 import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
@@ -34,10 +35,30 @@ export type DashboardLayoutProps = {
 
 export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) {
   const theme = useTheme();
-
   const [navOpen, setNavOpen] = useState(false);
-
   const layoutQuery: Breakpoint = 'lg';
+
+  const [role, setRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Prevent UI flicker
+
+  useEffect(() => {
+    // Get user data from cookies
+    const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
+
+    if (userData && userData.user === 'active' && userData.isLogin) {
+      setRole(userData.role);
+    } else {
+      setRole(null); // Default to null if user is not active
+    }
+
+    setIsLoading(false); // Mark loading complete
+  }, []);
+
+  // Show loading indicator while determining role
+  if (isLoading) return null;
+
+  // Determine Navigation Data Based on Role
+  const navData = role === 'admin' ? adminNavData : userNavData;
 
   return (
     <LayoutSection
@@ -79,7 +100,6 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
             ),
             rightArea: (
               <Box gap={1} display="flex" alignItems="center">
-                {/* <Searchbar /> */}
                 <LanguagePopover data={_langs} />
                 <NotificationsPopover data={_notifications} />
                 <AccountPopover
@@ -99,6 +119,12 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                       href: '/setting',
                       icon: <Iconify width={22} icon="solar:settings-bold-duotone" />,
                     },
+                    // {
+                    //   label: 'Log out',
+                    //   href: '#',
+                    //   onClick: handleLogout, // Call logout function
+                    //   icon: <Iconify width={22} icon="solar:logout-bold-duotone" />,
+                    // },
                   ]}
                 />
               </Box>
@@ -134,6 +160,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
         ...sx,
       }}
     >
+      <br />
       <br />
       <Main>{children}</Main>
     </LayoutSection>
