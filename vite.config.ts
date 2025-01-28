@@ -14,19 +14,25 @@ export default defineConfig({
       typescript: true,
       eslint: {
         lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
-        dev: { logLevel: 'error' }, // Fixed: logLevel should be a string, not an array
+        dev: { logLevel: ['error'] },
       },
       overlay: {
-        position: 'top-left', // Fixed: Corrected overlay position value
+        position: 'tl',
         initialIsOpen: false,
       },
     }),
   ],
   resolve: {
-    alias: {
-      '~': path.resolve(process.cwd(), 'node_modules'),
-      '@src': path.resolve(process.cwd(), 'src'), // More conventional aliasing
-    },
+    alias: [
+      {
+        find: /^~(.+)/,
+        replacement: path.join(process.cwd(), 'node_modules/$1'),
+      },
+      {
+        find: /^src(.+)/,
+        replacement: path.join(process.cwd(), 'src/$1'),
+      },
+    ],
   },
   server: {
     port: PORT,
