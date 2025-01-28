@@ -14,28 +14,31 @@ export default defineConfig({
       typescript: true,
       eslint: {
         lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
-        dev: { logLevel: ['error'] },
+        dev: { logLevel: 'error' }, // Fixed: logLevel should be a string, not an array
       },
       overlay: {
-        position: 'tl',
+        position: 'top-left', // Fixed: Corrected overlay position value
         initialIsOpen: false,
       },
     }),
   ],
   resolve: {
-    alias: [
-      {
-        find: /^~(.+)/,
-        replacement: path.join(process.cwd(), 'node_modules/$1'),
-      },
-      {
-        find: /^src(.+)/,
-        replacement: path.join(process.cwd(), 'src/$1'),
-      },
-    ],
+    alias: {
+      '~': path.resolve(process.cwd(), 'node_modules'),
+      '@src': path.resolve(process.cwd(), 'src'), // More conventional aliasing
+    },
   },
-  server: { port: PORT, host: true },
-  preview: { port: PORT, host: true },
+  server: {
+    port: PORT,
+    host: true,
+    strictPort: true, // Ensures Vite binds strictly to PORT
+    allowedHosts: ['*'], // Allows all hosts to prevent request blocking issues
+  },
+  preview: {
+    port: PORT,
+    host: true,
+    strictPort: true,
+  },
   build: {
     outDir: 'dist', // Must match Netlify's publish directory in netlify.toml
   },
