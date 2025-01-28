@@ -14,31 +14,27 @@ export default defineConfig({
       typescript: true,
       eslint: {
         lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
-        dev: { logLevel: ['error'] },
+        dev: {
+          logLevel: ['error'], // ✅ Correct: Array of strings
+        }, // Fixed: logLevel should be a string, not an array
       },
       overlay: {
-        position: 'tl',
+        position: 'tl', // Fixed: Corrected overlay position value
         initialIsOpen: false,
       },
     }),
   ],
   resolve: {
-    alias: [
-      {
-        find: /^~(.+)/,
-        replacement: path.join(process.cwd(), 'node_modules/$1'),
-      },
-      {
-        find: /^src(.+)/,
-        replacement: path.join(process.cwd(), 'src/$1'),
-      },
-    ],
+    alias: {
+      '~': path.resolve(process.cwd(), 'node_modules'), // Fixed alias
+      '@src': path.resolve(process.cwd(), 'src'), // Better aliasing format
+    },
   },
   server: {
     port: PORT,
     host: true,
     strictPort: true, // Ensures Vite binds strictly to PORT
-    allowedHosts: ['*'], // Allows all hosts to prevent request blocking issues
+    allowedHosts: ['*'], // Prevents request blocking issues
   },
   preview: {
     port: PORT,
