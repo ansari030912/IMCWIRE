@@ -1,15 +1,9 @@
-// TypeScript Imports
 import type { ReactNode } from 'react';
-
-// eslint-disable-next-line import/no-extraneous-dependencies
 import Cookies from 'js-cookie';
-// eslint-disable-next-line import/no-duplicates
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Outlet, Navigate, useRoutes } from 'react-router-dom';
-
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-
 import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
@@ -17,11 +11,26 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 // Lazy-loaded components
 const HomePage = lazy(() => import('src/pages/home'));
 const BlogPage = lazy(() => import('src/pages/blog'));
-const UserPage = lazy(() => import('src/pages/user'));
 const SignInPage = lazy(() => import('src/pages/sign-in'));
 const SignUpPage = lazy(() => import('src/pages/sign-up'));
 const ProductsPage = lazy(() => import('src/pages/products'));
 const Page404 = lazy(() => import('src/pages/page-not-found'));
+const AddCompaniesPage = lazy(() => import('src/pages/add-companies'));
+const AddCuponsPage = lazy(() => import('src/pages/add-coupon-admin'));
+const AddFaqsPage = lazy(() => import('src/pages/add-faq-admin'));
+const AddPackagesPage = lazy(() => import('src/pages/add-packages-admin'));
+const AddPressReleasePage = lazy(() => import('src/pages/add-press-release'));
+const AllTransactionsAdminPage = lazy(() => import('src/pages/all-transactions-admin'));
+const CompaniesPage = lazy(() => import('src/pages/companies'));
+const FaqsPage = lazy(() => import('src/pages/faq'));
+const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
+const PackagesPage = lazy(() => import('src/pages/packages'));
+const PressReleasePage = lazy(() => import('src/pages/press-release'));
+const ProfilePage = lazy(() => import('src/pages/profile'));
+const TransactionPage = lazy(() => import('src/pages/transactions'));
+const ReportsPage = lazy(() => import('src/pages/reports'));
+const UserPage = lazy(() => import('src/pages/user'));
+const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 
 // Loading fallback
 const renderFallback = (
@@ -42,35 +51,91 @@ interface RouteGuardProps {
   children: ReactNode;
 }
 
-// Authentication Guard for protected routes (Dashboard, etc.)
+// Authentication Hook
+function useAuth() {
+  return useMemo(() => {
+    const user = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
+    if (!user) return { isAuthenticated: false };
+    return {
+      isAuthenticated: !!(user.token && user.message === 'Login successful' && user.isActive),
+      isUser: user?.role === 'user',
+      isAdmin: user?.role === 'admin',
+      isSuperAdmin: user?.role === 'super_admin',
+      user,
+    };
+  }, []);
+}
+
+// Route Guards
 function PrivateRoute({ children }: RouteGuardProps) {
-  const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
-  const isAuthenticated = userData && userData.user === 'active' && userData.isLogin === true;
-
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  const auth = useAuth();
+  return auth.isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-// Admin Route Guard (Only Allows Admins)
-function AdminRoute({ children }: RouteGuardProps) {
-  const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
-  const isAdmin = userData && userData.role === 'admin' && userData.isLogin === true;
-
-  return isAdmin ? <>{children}</> : <Navigate to="/" replace />; // Redirect non-admins to home
-}
-
-// Public Route for Login/Register (only accessible when NOT logged in)
+// Public Route Guard
 function PublicRoute({ children }: RouteGuardProps) {
-  const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
-  const isAuthenticated = userData && userData.user === 'active' && userData.isLogin === true;
+  const auth = useAuth();
+  return auth.isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
+}
 
-  return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
+// Get Routes Based on Role
+function useRoutesByRole() {
+  const auth = useAuth();
+  if (auth.isUser) {
+    return [
+      { element: <HomePage />, index: true },
+      { path: 'add-press-release', element: <AddPressReleasePage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      { path: 'transactions', element: <TransactionPage /> },
+      { path: 'faqs', element: <FaqsPage /> },
+      { path: 'how-it-works', element: <HowItWorkage /> },
+      { path: 'companies', element: <CompaniesPage /> },
+      { path: 'packages', element: <PackagesPage /> },
+      { path: 'add-company', element: <AddCompaniesPage /> },
+      { path: 'package/:id', element: <AddCompaniesPage /> },
+    ];
+  }
+
+  if (auth.isAdmin) {
+    return [
+      { element: <HomePage />, index: true },
+      { path: 'press-release', element: <UserPage /> },
+      { path: 'companies', element: <BlogPage /> },
+      { path: 'add-press-release', element: <BlogPage /> },
+    ];
+  }
+
+  if (auth.isSuperAdmin) {
+    return [
+      { element: <HomePage />, index: true },
+      { path: 'press-release', element: <PressReleasePage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
+      { path: 'faqs', element: <FaqsPage /> },
+      { path: 'add-faqs', element: <AddFaqsPage /> },
+      { path: 'how-it-works', element: <HowItWorkage /> },
+      { path: 'packages', element: <PackagesPage /> },
+      { path: 'add-packages', element: <AddPackagesPage /> },
+      { path: 'companies', element: <CompaniesPage /> },
+      { path: 'add-coupons', element: <AddCuponsPage /> },
+      { path: 'package/:id', element: <AddCompaniesPage /> },
+      { path: 'users', element: <UserPage /> },
+      { path: 'purchase/:id', element: <PlanPurchasePage /> },
+    ];
+  }
+
+  return [];
 }
 
 // Router function
 export function Router() {
+  const auth = useAuth(); // Get authentication status
+  const routesByRole = useRoutesByRole();
+
   return useRoutes([
     {
-      element: (
+      path: '/',
+      element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>
             <Suspense fallback={renderFallback}>
@@ -78,26 +143,10 @@ export function Router() {
             </Suspense>
           </DashboardLayout>
         </PrivateRoute>
+      ) : (
+        <Navigate to="/login" replace />
       ),
-      children: [
-        { element: <HomePage />, index: true },
-        { path: 'press-release', element: <UserPage /> },
-        { path: 'add-press-release', element: <ProductsPage /> },
-        { path: 'reports', element: <BlogPage /> },
-        { path: 'transactions', element: <ProductsPage /> },
-        { path: 'faqs', element: <ProductsPage /> },
-        { path: 'how-it-works', element: <BlogPage /> },
-
-        // Admin Only Routes (Protected with AdminRoute)
-        {
-          element: <AdminRoute><Outlet /></AdminRoute>,
-          children: [
-            { path: 'packages', element: <UserPage /> },
-            { path: 'companies', element: <BlogPage /> },
-            { path: 'add-company', element: <UserPage /> },
-          ],
-        },
-      ],
+      children: routesByRole,
     },
     {
       path: 'login',
@@ -119,13 +168,18 @@ export function Router() {
         </PublicRoute>
       ),
     },
+    { path: '404', element: <Page404 /> },
+    { path: '*', element: <Navigate to="/404" replace /> },
     {
-      path: '404',
-      element: <Page404 />,
-    },
-    {
-      path: '*',
-      element: <Navigate to="/404" replace />,
+      path: 'purchase/:id',
+      element: (
+        <div>
+          <br />
+          <br />
+          <br />
+          <PlanPurchasePage />
+        </div>
+      ),
     },
   ]);
 }

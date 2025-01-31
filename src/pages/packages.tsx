@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { UserView } from 'src/sections/user/view';
+import { PackagesView } from 'src/sections/packages/view';
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,10 @@ export default function Page() {
   return (
     <>
       <Helmet>
-        <title> {`All Users - ${CONFIG.appName}`}</title>
+        <title> {`Packages - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <UserView />
+      <PackagesView />
     </>
   );
 }

@@ -1,7 +1,6 @@
 import type { UserProps } from './user-table-row';
 
-// ----------------------------------------------------------------------
-
+// For screen-reader text in MUI sorting
 export const visuallyHidden = {
   border: 0,
   margin: -1,
@@ -14,15 +13,18 @@ export const visuallyHidden = {
   clip: 'rect(0 0 0 0)',
 } as const;
 
-// ----------------------------------------------------------------------
-
+/**
+ * Calculate how many empty rows to show when a table has fewer items on the last page
+ */
 export function emptyRows(page: number, rowsPerPage: number, arrayLength: number) {
   return page ? Math.max(0, (1 + page) * rowsPerPage - arrayLength) : 0;
 }
 
-// ----------------------------------------------------------------------
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+/**
+ * A basic descending comparator for sorting
+ */
+function descendingComparator<T, K extends keyof T>(a: T, b: T, orderBy: K): number {
+  // If the property doesn't exist or can't be compared, you might need extra checks
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }
@@ -32,48 +34,51 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   return 0;
 }
 
-// ----------------------------------------------------------------------
-
-export function getComparator<Key extends keyof any>(
-  order: 'asc' | 'desc',
-  orderBy: Key
-): (
-  a: {
-    [key in Key]: number | string;
-  },
-  b: {
-    [key in Key]: number | string;
-  }
-) => number {
+/**
+ * Return a comparator function (asc or desc) for stable sorting
+ */
+export function getComparator<T>(order: 'asc' | 'desc', orderBy: keyof T) {
   return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+    ? (a: T, b: T) => descendingComparator(a, b, orderBy)
+    : (a: T, b: T) => -descendingComparator(a, b, orderBy);
 }
 
 // ----------------------------------------------------------------------
+// Apply stable sorting, then (optionally) filter by "filterName"
+// ----------------------------------------------------------------------
 
-type ApplyFilterProps = {
-  inputData: UserProps[];
+type ApplyFilterProps<T> = {
+  inputData: T[];
   filterName: string;
-  comparator: (a: any, b: any) => number;
+  comparator: (a: T, b: T) => number;
 };
 
-export function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
+export function applyFilter<T extends UserProps>({
+  inputData,
+  comparator,
+  filterName,
+}: ApplyFilterProps<T>) {
+  // 1) Stable sort
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) return order;
+    // Tie-break by original index to maintain stable sort
     return a[1] - b[1];
   });
+  let sortedData = stabilizedThis.map((el) => el[0]);
 
-  inputData = stabilizedThis.map((el) => el[0]);
-
+  // 2) Filter by `filterName` (adjust fields as needed)
   if (filterName) {
-    inputData = inputData.filter(
-      (user) => user.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+    const search = filterName.toLowerCase();
+    // If your UserProps does NOT have username/email/role or uses different field names,
+    // adjust the filtering logic here accordingly.
+    sortedData = sortedData.filter((user) =>
+      user.username.toLowerCase().includes(search) ||
+      user.email.toLowerCase().includes(search) ||
+      user.role.toLowerCase().includes(search)
     );
   }
 
-  return inputData;
+  return sortedData;
 }

@@ -1,68 +1,67 @@
 import Box from '@mui/material/Box';
-import TableRow from '@mui/material/TableRow';
-import Checkbox from '@mui/material/Checkbox';
-import TableHead from '@mui/material/TableHead';
 import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
-
 import { visuallyHidden } from './utils';
 
 // ----------------------------------------------------------------------
 
+type HeadCell = {
+  id: string;
+  label: string;
+  align?: 'left' | 'right' | 'center';
+  width?: number | string;
+  minWidth?: number | string;
+};
+
 type UserTableHeadProps = {
-  orderBy: string;
-  rowCount: number;
-  numSelected: number;
-  order: 'asc' | 'desc';
+  orderBy: string;            // e.g. "name", "email", "role", etc.
+  order: 'asc' | 'desc';      // current direction
   onSort: (id: string) => void;
-  headLabel: Record<string, any>[];
-  onSelectAllRows: (checked: boolean) => void;
+  headLabel: HeadCell[];
 };
 
 export function UserTableHead({
   order,
   onSort,
   orderBy,
-  rowCount,
   headLabel,
-  numSelected,
-  onSelectAllRows,
 }: UserTableHeadProps) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              onSelectAllRows(event.target.checked)
-            }
-          />
-        </TableCell>
+        {headLabel.map((headCell) => {
+          const isActive = orderBy === headCell.id;
 
-        {headLabel.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.align || 'left'}
-            sortDirection={orderBy === headCell.id ? order : false}
-            sx={{ width: headCell.width, minWidth: headCell.minWidth }}
-          >
-            <TableSortLabel
-              hideSortIcon
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={() => onSort(headCell.id)}
+          return (
+            <TableCell
+              key={headCell.id}
+              align={headCell.align || 'left'}
+              sortDirection={isActive ? order : false}
+              sx={{ width: headCell.width, minWidth: headCell.minWidth }}
             >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <Box sx={{ ...visuallyHidden }}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
+              <TableSortLabel
+                // If you want the arrow to show only when active:
+                hideSortIcon
+                // If you want the arrow always visible for all columns, do `hideSortIcon={false}`
+
+                active={isActive}
+                direction={isActive ? order : 'asc'}
+                onClick={() => onSort(headCell.id)}
+              >
+                {headCell.label}
+
+                {/* Screen-reader text for accessibility */}
+                {isActive && (
+                  <Box component="span" sx={visuallyHidden}>
+                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                  </Box>
+                )}
+              </TableSortLabel>
+            </TableCell>
+          );
+        })}
       </TableRow>
     </TableHead>
   );

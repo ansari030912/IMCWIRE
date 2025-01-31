@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import type { IconButtonProps } from '@mui/material/IconButton';
 
 import Cookies from 'js-cookie';
@@ -31,9 +30,7 @@ export type AccountPopoverProps = IconButtonProps & {
 
 export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps) {
   const router = useRouter();
-
   const pathname = usePathname();
-
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -51,20 +48,13 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     },
     [handleClosePopover, router]
   );
+
   const handleLogout = () => {
-    // Retrieve user data from cookies
-    const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
-
-    if (userData) {
-      // Set isLogin to false while keeping user data
-      userData.isLogin = false;
-
-      // Save updated user data back to cookies
-      Cookies.set('userData', JSON.stringify(userData), { expires: 7 });
-
-      // Redirect to login page
-      window.location.href = '/login';
-    }
+    // Remove user authentication cookies
+    Cookies.remove('user');
+    
+    // Redirect to login page
+    router.push('/login');
   };
 
   return (

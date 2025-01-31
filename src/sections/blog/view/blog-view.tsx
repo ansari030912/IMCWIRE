@@ -16,8 +16,10 @@ import { PostSort } from '../post-sort';
 import { PostSearch } from '../post-search';
 
 // ----------------------------------------------------------------------
-
-export function BlogView() {
+interface BlogViewProps {
+  id?: string; // Define id as an optional prop
+}
+export function BlogView({ id }: BlogViewProps) {
   const [sortBy, setSortBy] = useState('latest');
 
   const handleSort = useCallback((newSort: string) => {
@@ -28,7 +30,7 @@ export function BlogView() {
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={5}>
         <Typography variant="h4" flexGrow={1}>
-          Blog
+          Blog - {id}
         </Typography>
         <Button
           variant="contained"

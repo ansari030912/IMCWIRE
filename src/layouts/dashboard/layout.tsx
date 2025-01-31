@@ -1,20 +1,15 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
-
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
-
 import { _langs, _notifications } from 'src/_mock';
-
 import { Iconify } from 'src/components/iconify';
-
 import { Main } from './main';
 import { layoutClasses } from '../classes';
 import { NavMobile, NavDesktop } from './nav';
-import { userNavData, adminNavData } from '../config-nav-dashboard';
+import { userNavData, adminNavData, superAdminNavData } from '../config-nav-dashboard';
 import { _workspaces } from '../config-nav-workspace';
 import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
@@ -22,8 +17,6 @@ import { HeaderSection } from '../core/header-section';
 import { AccountPopover } from '../components/account-popover';
 import { LanguagePopover } from '../components/language-popover';
 import { NotificationsPopover } from '../components/notifications-popover';
-
-// ----------------------------------------------------------------------
 
 export type DashboardLayoutProps = {
   sx?: SxProps<Theme>;
@@ -39,39 +32,38 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
   const layoutQuery: Breakpoint = 'lg';
 
   const [role, setRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Prevent UI flicker
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get user data from cookies
-    const userData = Cookies.get('userData') ? JSON.parse(Cookies.get('userData') || '{}') : null;
-
-    if (userData && userData.user === 'active' && userData.isLogin) {
-      setRole(userData.role);
+    const user = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
+    if (user && user.token && user.message === 'Login successful' && user.isActive) {
+      setRole(user.role);
     } else {
-      setRole(null); // Default to null if user is not active
+      setRole(null);
     }
-
-    setIsLoading(false); // Mark loading complete
+    setIsLoading(false);
   }, []);
 
-  // Show loading indicator while determining role
   if (isLoading) return null;
 
-  // Determine Navigation Data Based on Role
-  const navData = role === 'admin' ? adminNavData : userNavData;
+  let navData;
+  if (role === 'super_admin') {
+    navData = superAdminNavData;
+  } else if (role === 'admin') {
+    navData = adminNavData;
+  } else {
+    navData = userNavData;
+  }
 
   return (
     <LayoutSection
-      /** **************************************
-       * Header
-       *************************************** */
       headerSection={
         <HeaderSection
           layoutQuery={layoutQuery}
           slotProps={{
             container: {
               maxWidth: false,
-              sx: { px: { [layoutQuery]: 5 }, bgcolor: '#f1eaff' },
+              sx: { px: { [layoutQuery]: 5 }, bgcolor: '#f1eaff', boxShadow:"0 5px 10px rgba(0, 0, 0, 0.15)" },
             },
           }}
           sx={header?.sx}
@@ -119,12 +111,6 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                       href: '/setting',
                       icon: <Iconify width={22} icon="solar:settings-bold-duotone" />,
                     },
-                    // {
-                    //   label: 'Log out',
-                    //   href: '#',
-                    //   onClick: handleLogout, // Call logout function
-                    //   icon: <Iconify width={22} icon="solar:logout-bold-duotone" />,
-                    // },
                   ]}
                 />
               </Box>
@@ -132,19 +118,10 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
           }}
         />
       }
-      /** **************************************
-       * Sidebar
-       *************************************** */
       sidebarSection={
         <NavDesktop data={navData} layoutQuery={layoutQuery} workspaces={_workspaces} />
       }
-      /** **************************************
-       * Footer
-       *************************************** */
       footerSection={null}
-      /** **************************************
-       * Style
-       *************************************** */
       cssVars={{
         '--layout-nav-vertical-width': '300px',
         '--layout-dashboard-content-pt': theme.spacing(1),

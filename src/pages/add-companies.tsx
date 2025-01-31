@@ -1,19 +1,21 @@
 import { Helmet } from 'react-helmet-async';
+import { useParams } from 'react-router-dom';
 
 import { CONFIG } from 'src/config-global';
 
-import { UserView } from 'src/sections/user/view';
+import { BlogView } from 'src/sections/blog/view';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
+  const { id } = useParams<{ id?: string }>();
   return (
     <>
       <Helmet>
-        <title> {`All Users - ${CONFIG.appName}`}</title>
+        <title> {`Add Companies - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <UserView />
+      <BlogView id={id} />
     </>
   );
 }

@@ -66,6 +66,7 @@ export function NavDesktop({
         width: 'var(--layout-nav-vertical-width)',
         borderRight: `1px solid var(--layout-nav-border-color, ${varAlpha('0 145 158', 0.12)})`,
         ...sx,
+        boxShadow: '5px 0 10px rgba(0, 0, 0, 0.03)',
       }}
     >
       <NavContent data={data} slots={slots} workspaces={workspaces} />

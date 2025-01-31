@@ -1,18 +1,15 @@
-import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 
-import { _tasks, _posts, _timeline } from 'src/_mock';
+import { _timeline } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { AnalyticsNews } from '../analytics-news';
-import { AnalyticsTasks } from '../analytics-tasks';
+import { Box } from '@mui/material';
+import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 import { AnalyticsCurrentVisits } from '../analytics-current-visits';
 import { AnalyticsOrderTimeline } from '../analytics-order-timeline';
-import { AnalyticsWebsiteVisits } from '../analytics-website-visits';
-import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 import { AnalyticsTrafficBySite } from '../analytics-traffic-by-site';
-import { AnalyticsCurrentSubject } from '../analytics-current-subject';
-import { AnalyticsConversionRates } from '../analytics-conversion-rates';
+import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 
 // ----------------------------------------------------------------------
 
@@ -41,7 +38,7 @@ export function OverviewAnalyticsView() {
           <AnalyticsWidgetSummary
             title="In Progress"
             percent={0}
-            total={1352831}
+            total={0}
             color="secondary"
             icon={<img alt="icon" src="/assets/icons/glass/ic-glass-users.svg" />}
             chart={{
@@ -107,15 +104,15 @@ export function OverviewAnalyticsView() {
           />
         </Grid> */}
 
-        <Grid xs={12} md={6} lg={4}>
+        <Grid xs={12} md={6} lg={8}>
           <AnalyticsConversionRates
-            title="Conversion rates"
-            subheader="(+43%) than last year"
+            title="Current Users Analytics"
+            subheader="(+73%) than last year"
             chart={{
               categories: ['Italy', 'Japan', 'China', 'Canada', 'France'],
               series: [
-                { name: '2022', data: [44, 55, 41, 64, 22] },
-                { name: '2023', data: [53, 32, 33, 52, 13] },
+                { name: '2023', data: [572, 125, 343, 2223, 512] },
+                { name: '2024', data: [828, 329, 753, 3155, 1242] },
               ],
             }}
           />
@@ -138,49 +135,100 @@ export function OverviewAnalyticsView() {
         <Grid xs={12} md={6} lg={8}>
           <AnalyticsNews title="News" list={_posts.slice(0, 5)} />
         </Grid> */}
-
+        {/* 
         <Grid xs={12} md={6} lg={4}>
           <AnalyticsOrderTimeline title="Order timeline" list={_timeline} />
-        </Grid>
+        </Grid> */}
         {/* <Grid xs={12} md={6} lg={4}>
           <AnalyticsOrderTimeline title="Order timeline" list={_timeline} />
         </Grid>
         <Grid xs={12} md={6} lg={4}>
           <AnalyticsOrderTimeline title="Order timeline" list={_timeline} />
         </Grid> */}
+      </Grid>
+      <br />
+      <Grid container spacing={3}>
+        <Grid xs={12} md={6} lg={4}>
+          <Box
+            sx={{
+              mt: 2,
+              bgcolor: 'white',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              padding: '16px',
+            }}
+          >
+            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
+              <b>
+                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>1</span> - Youtube Video
+              </b>
+            </div>
+            <iframe
+              width="100%"
+              height="250"
+              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
+              title="YouTube Video"
+              frameBorder="0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </Box>
+        </Grid>
 
         <Grid xs={12} md={6} lg={4}>
-          <AnalyticsTrafficBySite
-            title="Traffic by site"
-            list={[
-              { value: 'facebook', label: 'Facebook', total: 323234 },
-              { value: 'google', label: 'Google', total: 341212 },
-              { value: 'linkedin', label: 'Linkedin', total: 411213 },
-              { value: 'twitter', label: 'Twitter', total: 443232 },
-            ]}
-          />
+          <Box
+            sx={{
+              mt: 2,
+              bgcolor: 'white',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              padding: '16px',
+            }}
+          >
+            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
+              <b>
+                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>2</span> - Youtube Video
+              </b>
+            </div>
+            <iframe
+              width="100%"
+              height="250"
+              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
+              title="YouTube Video"
+              frameBorder="0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </Box>
         </Grid>
         <Grid xs={12} md={6} lg={4}>
-          <AnalyticsTrafficBySite
-            title="Traffic by site"
-            list={[
-              { value: 'facebook', label: 'Facebook', total: 323234 },
-              { value: 'google', label: 'Google', total: 341212 },
-              { value: 'linkedin', label: 'Linkedin', total: 411213 },
-              { value: 'twitter', label: 'Twitter', total: 443232 },
-            ]}
-          />
-        </Grid>
-        <Grid xs={12} md={6} lg={4}>
-          <AnalyticsTrafficBySite
-            title="Traffic by site"
-            list={[
-              { value: 'facebook', label: 'Facebook', total: 323234 },
-              { value: 'google', label: 'Google', total: 341212 },
-              { value: 'linkedin', label: 'Linkedin', total: 411213 },
-              { value: 'twitter', label: 'Twitter', total: 443232 },
-            ]}
-          />
+          <Box
+            sx={{
+              mt: 2,
+              bgcolor: 'white',
+              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              padding: '16px',
+            }}
+          >
+            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
+              <b>
+                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>3</span> - Youtube Video
+              </b>
+            </div>
+            <iframe
+              width="100%"
+              height="250"
+              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
+              title="YouTube Video"
+              frameBorder="0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </Box>
         </Grid>
 
         {/* <Grid xs={12} md={6} lg={8}>

@@ -82,7 +82,7 @@ export function LanguagePopover({ sx, ...other }: LanguagePopoverProps) {
             sx={{ width: 25, height: 32, borderRadius: 0.5, objectFit: 'cover' }}
           />
           <div>
-            <div style={{ marginLeft: '-10px', fontSize: '11px', color: 'green' }}>$ 0</div>
+            <div style={{ marginLeft: '-10px', fontSize: '11px', color: 'green' }}>$ 10</div>
             <div style={{ marginLeft: '-10px', fontSize: '9px', color: '#5F4880', font: 'bold' }}>
               <b>PR Balanace</b>
             </div>
