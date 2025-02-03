@@ -171,7 +171,8 @@ const AddPlanView = () => {
         </Alert>
       ) : (
         <>
-          <section className="py-10">
+          <hr className="text-gray-100 border-2" />
+          <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
                 .filter((plan) => plan.type === 'product' || plan.type === 'products')
@@ -197,7 +198,7 @@ const AddPlanView = () => {
                           ${plan.totalPlanPrice}
                         </h2>
                         <div className="flex justify-center mt-4">
-                          <div className="bg-red-500 text-white rounded-lg px-2 py-1 text-xs font-bold inline-block">
+                          <div className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
                             {plan.type}
                           </div>
                         </div>
@@ -236,13 +237,13 @@ const AddPlanView = () => {
                         </ul>
                       </div>
 
-                      {/* Get Started Button */}
+                      {/* Buy Now Button */}
                       <div className="w-full p-6">
                         <a
                           className="px-6 py-3 block text-center w-full bg-gray-800 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
                           href="#"
                         >
-                          Get Started
+                          Buy Now
                         </a>
                       </div>
                     </div>
@@ -250,8 +251,8 @@ const AddPlanView = () => {
                 ))}
             </Grid>
           </section>
-          <hr className='text-gray-200 border-2'/>
-          <section className="py-10">
+          <hr className="text-gray-100 border-2" />
+          <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
                 .filter((plan) => plan.type === 'packages' || plan.type === 'package')
@@ -277,7 +278,7 @@ const AddPlanView = () => {
                           ${plan.totalPlanPrice}
                         </h2>
                         <div className="flex justify-center mt-4">
-                          <div className="bg-yellow-500 text-white rounded-lg px-2 py-1 text-xs font-bold inline-block">
+                          <div className="bg-yellow-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
                             {plan.type}
                           </div>
                         </div>
@@ -316,13 +317,13 @@ const AddPlanView = () => {
                         </ul>
                       </div>
 
-                      {/* Get Started Button */}
+                      {/* Buy Now Button */}
                       <div className="w-full p-6">
                         <a
                           className="px-6 py-3 block text-center w-full bg-gray-800 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
                           href="#"
                         >
-                          Get Started
+                          Buy Now
                         </a>
                       </div>
                     </div>
