@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { BlogView } from 'src/sections/blog/view';
+import HowItWorkView from 'src/sections/how-it-works/view/how-it-work';
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ export default function Page() {
         <title> {`How It Works - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <BlogView />
+      <HowItWorkView />
     </>
   );
 }

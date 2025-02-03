@@ -115,6 +115,7 @@ export const superAdminNavData = [
       { title: 'Add Coupons', path: '/add-coupons', icon: icon('ic-add') },
       { title: 'Add Packages', path: '/add-packages', icon: icon('ic-add') },
       { title: 'Add FAQ', path: '/add-faqs', icon: icon('ic-add') },
+      { title: 'Add Videos', path: '/add-videos', icon: icon('ic-add') },
     ],
   },
 ];

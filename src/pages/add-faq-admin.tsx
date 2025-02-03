@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { BlogView } from 'src/sections/blog/view';
+import AddFAQView from 'src/sections/faq/view/add-faq';
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ export default function Page() {
         <title> {`Add Faqs - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <BlogView />
+      <AddFAQView />
     </>
   );
 }

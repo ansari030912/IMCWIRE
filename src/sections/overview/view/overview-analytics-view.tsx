@@ -1,15 +1,13 @@
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import Typography from '@mui/material/Typography';
 
-import { _timeline } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { Box } from '@mui/material';
-import { AnalyticsConversionRates } from '../analytics-conversion-rates';
+import DahboardVideos from 'src/sections/dashboard-videos/dashboard-video';
+
 import { AnalyticsCurrentVisits } from '../analytics-current-visits';
-import { AnalyticsOrderTimeline } from '../analytics-order-timeline';
-import { AnalyticsTrafficBySite } from '../analytics-traffic-by-site';
 import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
+import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 
 // ----------------------------------------------------------------------
 
@@ -147,94 +145,7 @@ export function OverviewAnalyticsView() {
         </Grid> */}
       </Grid>
       <br />
-      <Grid container spacing={3}>
-        <Grid xs={12} md={6} lg={4}>
-          <Box
-            sx={{
-              mt: 2,
-              bgcolor: 'white',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              padding: '16px',
-            }}
-          >
-            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
-              <b>
-                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>1</span> - Youtube Video
-              </b>
-            </div>
-            <iframe
-              width="100%"
-              height="250"
-              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
-              title="YouTube Video"
-              frameBorder="0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </Box>
-        </Grid>
-
-        <Grid xs={12} md={6} lg={4}>
-          <Box
-            sx={{
-              mt: 2,
-              bgcolor: 'white',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              padding: '16px',
-            }}
-          >
-            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
-              <b>
-                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>2</span> - Youtube Video
-              </b>
-            </div>
-            <iframe
-              width="100%"
-              height="250"
-              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
-              title="YouTube Video"
-              frameBorder="0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </Box>
-        </Grid>
-        <Grid xs={12} md={6} lg={4}>
-          <Box
-            sx={{
-              mt: 2,
-              bgcolor: 'white',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              padding: '16px',
-            }}
-          >
-            <div style={{ fontSize: '18px', marginBottom: '10px', color: '#462F6A' }}>
-              <b>
-                <span style={{ color: '#EA0F0E', fontSize: '20px' }}>3</span> - Youtube Video
-              </b>
-            </div>
-            <iframe
-              width="100%"
-              height="250"
-              src="https://www.youtube.com/embed/uChhQpHMmXE?autoplay=1&rel=0"
-              title="YouTube Video"
-              frameBorder="0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </Box>
-        </Grid>
-
-        {/* <Grid xs={12} md={6} lg={8}>
-          <AnalyticsTasks title="Tasks" list={_tasks} />
-        </Grid> */}
-      </Grid>
+      <DahboardVideos />
     </DashboardContent>
   );
 }

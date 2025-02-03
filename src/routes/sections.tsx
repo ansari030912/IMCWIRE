@@ -31,6 +31,7 @@ const TransactionPage = lazy(() => import('src/pages/transactions'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
 const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
+const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 
 // Loading fallback
 const renderFallback = (
@@ -87,6 +88,7 @@ function useRoutesByRole() {
       { path: 'add-press-release', element: <AddPressReleasePage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'transactions', element: <TransactionPage /> },
+      { path: 'press-release', element: <PressReleasePage /> },
       { path: 'faqs', element: <FaqsPage /> },
       { path: 'how-it-works', element: <HowItWorkage /> },
       { path: 'companies', element: <CompaniesPage /> },
@@ -99,7 +101,7 @@ function useRoutesByRole() {
   if (auth.isAdmin) {
     return [
       { element: <HomePage />, index: true },
-      { path: 'press-release', element: <UserPage /> },
+      { path: 'press-release', element: <PressReleasePage /> },
       { path: 'companies', element: <BlogPage /> },
       { path: 'add-press-release', element: <BlogPage /> },
     ];
@@ -121,6 +123,7 @@ function useRoutesByRole() {
       { path: 'package/:id', element: <AddCompaniesPage /> },
       { path: 'users', element: <UserPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
+      { path: 'add-videos', element: <AddVideosPage /> },
     ];
   }
 

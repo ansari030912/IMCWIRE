@@ -476,7 +476,7 @@ export function PackagesView() {
                 id="category-select"
                 value={categoryToAdd}
                 onChange={(e) => setCategoryToAdd(e.target.value)}
-                className="block w-full border border-gray-300 text-gray-700 py-2 px-3 pr-12 rounded-lg focus:outline-none appearance-none"
+                className="block w-full border border-gray-300 text-gray-700 py-2 px-3 pr-12 cursor-pointer rounded-lg focus:outline-none appearance-none"
               >
                 <option value="">-- Choose Category --</option>
                 {allCategories.map((cat) => (
@@ -501,7 +501,7 @@ export function PackagesView() {
 
             <button
               onClick={handleAddCategory}
-              className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700"
+              className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
             >
               Add
             </button>
@@ -547,7 +547,7 @@ export function PackagesView() {
                 id="country-select"
                 value={countryToAdd}
                 onChange={(e) => setCountryToAdd(e.target.value)}
-                className="block w-full border border-gray-300 text-gray-700 py-2 px-3 pr-12 rounded-lg focus:outline-none appearance-none"
+                className="block w-full border border-gray-300 text-gray-700 py-2 px-3 pr-12 cursor-pointer rounded-lg focus:outline-none appearance-none"
               >
                 <option value="">-- Choose Country --</option>
                 {allCountries.map((c) => (
@@ -572,7 +572,7 @@ export function PackagesView() {
 
             <button
               onClick={handleAddCountry}
-              className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700"
+              className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
             >
               Add
             </button>
@@ -591,12 +591,12 @@ export function PackagesView() {
                 >
                   <div className="flex items-center gap-2">
                     <span>{c.name}</span>
-                    <label className="flex items-center text-sm text-gray-500">
+                    <label className="flex items-center cursor-pointer text-sm text-gray-500">
                       <input
                         type="checkbox"
                         checked={c.translation}
                         onChange={() => toggleCountryTranslation(c.name)}
-                        className="mr-1"
+                        className="mr-1 cursor-pointer"
                       />
                       Translation?
                     </label>
@@ -623,7 +623,7 @@ export function PackagesView() {
           </button>
           <button
             onClick={handleNext}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
           >
             Next
           </button>
@@ -681,7 +681,7 @@ export function PackagesView() {
           </button>
           <button
             onClick={handleNext}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
           >
             Next
           </button>
@@ -803,7 +803,7 @@ export function PackagesView() {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
           >
             {showLogin ? (loading ? 'Logging in...' : 'Login') : 'Register'}
           </button>
@@ -857,7 +857,7 @@ export function PackagesView() {
           </button>
           <button
             onClick={handleCheckout}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer cursor-pointer"
           >
             Checkout
           </button>
