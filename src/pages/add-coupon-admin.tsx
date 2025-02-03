@@ -2,7 +2,8 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { BlogView } from 'src/sections/blog/view';
+import AddCupponView from 'src/sections/add-cuppon/view/add-cuppon';
+
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +14,7 @@ export default function Page() {
         <title> {`Add Coupons - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <BlogView />
+      <AddCupponView />
     </>
   );
 }

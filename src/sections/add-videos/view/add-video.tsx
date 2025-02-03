@@ -19,7 +19,7 @@ const AddVideoView = () => {
   const [newVideo, setNewVideo] = useState({ title: '', youtube_channel: '' });
   const [showForm, setShowForm] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  console.log("🚀 ~ AddVideoView ~ token:", token)
+  console.log('🚀 ~ AddVideoView ~ token:', token);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -168,7 +168,7 @@ const AddVideoView = () => {
         )}
         {videos.length === 0 ? (
           <Alert severity="info" sx={{ width: '100%', mt: 2 }}>
-            No videos available
+            No Videos Available
           </Alert>
         ) : (
           <Grid container spacing={3}>

@@ -24,7 +24,6 @@ const AllTransactionsAdminPage = lazy(() => import('src/pages/all-transactions-a
 const CompaniesPage = lazy(() => import('src/pages/companies'));
 const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
-const PackagesPage = lazy(() => import('src/pages/packages'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
 const ProfilePage = lazy(() => import('src/pages/profile'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
@@ -92,7 +91,7 @@ function useRoutesByRole() {
       { path: 'faqs', element: <FaqsPage /> },
       { path: 'how-it-works', element: <HowItWorkage /> },
       { path: 'companies', element: <CompaniesPage /> },
-      { path: 'packages', element: <PackagesPage /> },
+      { path: 'packages', element: <ProductsPage /> },
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'package/:id', element: <AddCompaniesPage /> },
     ];
@@ -116,7 +115,7 @@ function useRoutesByRole() {
       { path: 'faqs', element: <FaqsPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
       { path: 'how-it-works', element: <HowItWorkage /> },
-      { path: 'packages', element: <PackagesPage /> },
+      { path: 'packages', element: <ProductsPage /> },
       { path: 'add-packages', element: <AddPackagesPage /> },
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'add-coupons', element: <AddCuponsPage /> },
