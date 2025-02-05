@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { PackagesView } from 'src/sections/packages/view';
+import { AddCustomPlanView } from 'src/sections/add-custom-plan/view';
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,10 @@ export default function Page() {
   return (
     <>
       <Helmet>
-        <title> {`Packages - ${CONFIG.appName}`}</title>
+        <title> {`Add Custom Innvoice - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      {/* <PackagesView /> */}
+      <AddCustomPlanView />
     </>
   );
 }

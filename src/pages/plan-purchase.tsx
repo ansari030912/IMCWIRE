@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useParams } from 'react-router-dom';
 
 import { CONFIG } from 'src/config-global';
 
@@ -7,6 +8,7 @@ import { PackagesView } from 'src/sections/packages/view';
 // ----------------------------------------------------------------------
 
 export default function Page() {
+  const { id } = useParams<{ id?: string }>();
   return (
     <>
       <Helmet>
@@ -14,7 +16,7 @@ export default function Page() {
       </Helmet>
       {/* <br /> */}
       {/* <br /> */}
-      <PackagesView />
+      <PackagesView id={id} />
     </>
   );
 }

@@ -31,6 +31,8 @@ const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
 const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
+const PlansPage = lazy(() => import('src/pages/plans'));
+const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
 
 // Loading fallback
 const renderFallback = (
@@ -93,7 +95,8 @@ function useRoutesByRole() {
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'packages', element: <ProductsPage /> },
       { path: 'add-company', element: <AddCompaniesPage /> },
-      { path: 'package/:id', element: <AddCompaniesPage /> },
+      { path: 'purchase/:id', element: <PlanPurchasePage /> },
+      { path: 'plans', element: <PlansPage /> },
     ];
   }
 
@@ -119,10 +122,11 @@ function useRoutesByRole() {
       { path: 'add-packages', element: <AddPackagesPage /> },
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'add-coupons', element: <AddCuponsPage /> },
-      { path: 'package/:id', element: <AddCompaniesPage /> },
       { path: 'users', element: <UserPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'add-videos', element: <AddVideosPage /> },
+      { path: 'plans', element: <PlansPage /> },
+      { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
     ];
   }
 

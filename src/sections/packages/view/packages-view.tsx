@@ -3,29 +3,30 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable react/button-has-type */
-/* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useCallback } from 'react';
-import Cookies from 'js-cookie';
 import axios from 'axios';
+import Cookies from 'js-cookie';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import { useState, useCallback, useEffect } from 'react';
 
 import {
   Box,
-  Typography,
   Card,
   Grid,
+  Alert,
+  Radio,
   Button,
   Snackbar,
-  Alert,
-  TextField,
   Checkbox,
-  FormControlLabel,
+  TextField,
+  FormLabel,
+  Typography,
   RadioGroup,
   FormControl,
-  FormLabel,
-  Radio,
+  FormControlLabel,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ----------------------------
@@ -37,7 +38,7 @@ interface ICountry {
   translation: boolean;
 }
 
-export function PackagesView() {
+export function PackagesView({ id }: { id: string | undefined }) {
   // ------------------------------------------------------------------------------
   // 1) Check if User is Already Logged In (via cookies)
   // ------------------------------------------------------------------------------
@@ -79,6 +80,30 @@ export function PackagesView() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
+  const [basePlanPrice, setBasePlanPrice] = useState(0);
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/v1/plan/single/${id}`, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 200) {
+          // Save user in cookies for 1 day
+          setBasePlanPrice(Number(response.data.totalPlanPrice));
+        }
+      } catch (error) {
+        setErrorMessage('Login failed. Please try again.');
+        console.error('Error during login:', error);
+      }
+    };
+
+    fetchPlan();
+  }, []);
 
   function showSnackbar(message: string, severity: 'error' | 'success' = 'error') {
     setSnackbarMessage(message);
@@ -93,7 +118,6 @@ export function PackagesView() {
   // ------------------------------------------------------------------------------
   // 4) Distribution / Pricing
   // ------------------------------------------------------------------------------
-  const basePlanPrice = 500;
 
   const allCategories = [
     'General',
@@ -342,8 +366,6 @@ export function PackagesView() {
 
     try {
       // Build payload
-      const clientId = 52312341; // example
-      const planId = 6;
       const prType = uploadChoice === 'write' ? 'IMCWire Written' : 'Self-Written';
       const paymentStatus = 'unpaid'; // or "pending"
 
@@ -366,8 +388,7 @@ export function PackagesView() {
       const total_price = Number(finalTotal.toFixed(2));
 
       const payload = {
-        client_id: clientId,
-        plan_id: planId,
+        plan_id: id,
         prType,
         pr_status: 'Pending',
         payment_method: paymentMethod,
@@ -379,7 +400,7 @@ export function PackagesView() {
 
       // Make request
       const token = loggedInUser?.token || '';
-      const resp = await axios.post(`${BASE_URL}/v1/pr/submit`, payload, {
+      const resp = await axios.post(`${BASE_URL}/v1/pr/submit-order`, payload, {
         headers: {
           'x-api-key': X_API_KEY,
           Authorization: `Bearer ${token}`,
@@ -458,7 +479,9 @@ export function PackagesView() {
   function renderStepOne() {
     return (
       <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Optimize Your Press Release for Maximum Impact</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Optimize Your Press Release for Maximum Impact
+        </h2>
         <p className="text-gray-800 font-bold mb-4">Industry Categories</p>
         <p className="text-sm text-gray-500 mb-6">
           IMCWIRE offers a hand-picked list of journalists for your initial industry category at no
@@ -832,7 +855,15 @@ export function PackagesView() {
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value as 'Stripe' | 'Paypro')}
           >
-            <FormControlLabel value="Stripe" control={<Radio />} label="Stripe" />
+            <FormControlLabel
+              value="Stripe"
+              control={<Radio />}
+              label={
+                <>
+                  Stripe <span className="text-red-500">Recommended</span>
+                </>
+              }
+            />
             <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" />
           </RadioGroup>
         </FormControl>
