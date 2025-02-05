@@ -262,6 +262,25 @@ export function PackagesView({ id }: { id: string | undefined }) {
   // ------------------------------------------------------------------------------
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [ipAddress, setIpAddress] = useState('');
+
+  useEffect(() => {
+    const fetchIp = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/v1/ip/get-ip`, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+        setIpAddress(response.data.ip);
+      } catch (error) {
+        console.error('Error fetching IP:', error);
+      }
+    };
+
+    fetchIp();
+  }, [id]);
 
   const handleSignIn = useCallback(async () => {
     setLoading(true);
@@ -269,7 +288,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
 
     try {
       // If needed, fetch IP address or remove if not needed
-      const ipAddress = '127.0.0.1'; // Or real IP logic
 
       if (!ipAddress) {
         setErrorMessage('Session Timeout. Please try again.');

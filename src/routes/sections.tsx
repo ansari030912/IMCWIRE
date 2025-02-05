@@ -25,7 +25,7 @@ const CompaniesPage = lazy(() => import('src/pages/companies'));
 const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
-const ProfilePage = lazy(() => import('src/pages/profile'));
+// const ProfilePage = lazy(() => import('src/pages/profile'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
@@ -33,7 +33,6 @@ const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
-const AddCupponView = lazy(() => import('src/pages/add-custom-plan'));
 
 // Loading fallback
 const renderFallback = (
@@ -98,6 +97,10 @@ function useRoutesByRole() {
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'plans', element: <PlansPage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
@@ -128,6 +131,10 @@ function useRoutesByRole() {
       { path: 'add-videos', element: <AddVideosPage /> },
       { path: 'plans', element: <PlansPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
@@ -177,6 +184,17 @@ export function Router() {
     },
     { path: '404', element: <Page404 /> },
     { path: '*', element: <Navigate to="/404" replace /> },
+    {
+      path: 'custom-invoice/:id',
+      element: (
+        <div>
+          <br />
+          <br />
+          <br />
+          <CustomPlanCheckOutPage />
+        </div>
+      ),
+    },
     {
       path: 'purchase/:id',
       element: (
