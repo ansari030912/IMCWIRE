@@ -33,6 +33,7 @@ const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
+const AddCupponView = lazy(() => import('src/pages/add-custom-plan'));
 
 // Loading fallback
 const renderFallback = (
@@ -92,7 +93,7 @@ function useRoutesByRole() {
       { path: 'press-release', element: <PressReleasePage /> },
       { path: 'faqs', element: <FaqsPage /> },
       { path: 'how-it-works', element: <HowItWorkage /> },
-      { path: 'companies', element: <CompaniesPage /> },
+      // { path: 'companies', element: <CompaniesPage /> },
       { path: 'packages', element: <ProductsPage /> },
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
