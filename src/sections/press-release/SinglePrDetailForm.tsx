@@ -36,6 +36,7 @@ interface SinglePrDetailsFormProps {
   orderId: number;
   // The PR Type determines if we upload an existing PDF or use IMCWire's writing
   prType: "IMCWire Written" | "Self-Written";
+  onSuccess?: () => void;
 }
 
 // Consolidated Company interface with all fields
@@ -59,7 +60,7 @@ interface Company {
    2) Main Component
    ------------------------------------------------------------------ */
 
-const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prType }) => {
+const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prType, onSuccess  }) => {
   // Authentication & Data
   const [token, setToken] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -182,6 +183,9 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
       }
 
       showSnackbar("PR details submitted successfully!", "success");
+      if (onSuccess) {
+        onSuccess();
+      }
       // (Optional) Clear fields after success
       resetForm();
     } catch (error) {
@@ -289,7 +293,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <Button onClick={handleAddTag} variant="contained" size="small">
+                      <Button type="button" onClick={handleAddTag} variant="contained" size="small">
                         Add
                       </Button>
                     </InputAdornment>
@@ -402,7 +406,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}

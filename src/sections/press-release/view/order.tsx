@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Alert,
   Box,
@@ -19,32 +19,19 @@ import {
   TablePagination,
   Typography,
   Chip,
-  Grid,
   IconButton,
   styled,
 } from '@mui/material';
-// import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-
-// Remove if you no longer need moment
-// import moment from 'moment';
 
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 import SinglePrDetailsForm from '../SinglePrDetailForm';
 
 // -------------- Type Definitions -------------- //
 
-type ChipColor =
-  | 'default'
-  | 'primary'
-  | 'secondary'
-  | 'error'
-  | 'info'
-  | 'success'
-  | 'warning';
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 
-/** If your API returns planRecords with these fields */
 interface PlanRecord {
   id: number;
   user_id: number;
@@ -91,14 +78,11 @@ interface Order {
   perma: string;
   targetCountries: TargetCountry[];
   industryCategories: IndustryCategory[];
-
-  /** New field for plan records (optional). Make sure your API returns this! */
   planRecords?: PlanRecord[];
 }
 
 // -------------- Helpers -------------- //
 
-// Get color/label for PR status
 function getPrStatusChipProps(status: string): { label: string; color: ChipColor } {
   switch (status.toLowerCase()) {
     case 'pending':
@@ -114,7 +98,6 @@ function getPrStatusChipProps(status: string): { label: string; color: ChipColor
   }
 }
 
-// Get color/label for payment status
 function getPaymentStatusChipProps(status: string): { label: string; color: ChipColor } {
   switch (status.toLowerCase()) {
     case 'paid':
@@ -151,7 +134,52 @@ const StyledTableHeadCell = styled(TableCell)(() => ({
 
 // -------------- Sub-Components -------------- //
 
-/** Simple sub-component to render plan info in a table */
+function IndustryList({ industries }: { industries: IndustryCategory[] }) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <StyledTableHeadCell>Category</StyledTableHeadCell>
+          <StyledTableHeadCell>Price</StyledTableHeadCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {industries.map((cat) => (
+          <TableRow key={cat.id}>
+            <StyledTableCell>{cat.categoryName}</StyledTableCell>
+            <StyledTableCell>${cat.categoryPrice}</StyledTableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function CountryList({ countries }: { countries: TargetCountry[] }) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <StyledTableHeadCell>Country</StyledTableHeadCell>
+          <StyledTableHeadCell>Price</StyledTableHeadCell>
+          <StyledTableHeadCell>Translation</StyledTableHeadCell>
+          <StyledTableHeadCell>Translation Price</StyledTableHeadCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {countries.map((tc) => (
+          <TableRow key={tc.id}>
+            <StyledTableCell>{tc.countryName}</StyledTableCell>
+            <StyledTableCell>${tc.countryPrice}</StyledTableCell>
+            <StyledTableCell>{tc.translation}</StyledTableCell>
+            <StyledTableCell>${tc.translationPrice}</StyledTableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 function PlanInfoTable({ order }: { order: Order }) {
   const rows = [
     { label: 'Plan Name', value: order.planName || '' },
@@ -195,61 +223,12 @@ function PlanInfoTable({ order }: { order: Order }) {
   );
 }
 
-/** Renders the list of industry categories */
-function IndustryList({ industries }: { industries: IndustryCategory[] }) {
-  return (
-    <Table size="small">
-      <TableHead>
-        <TableRow>
-          <StyledTableHeadCell>Category</StyledTableHeadCell>
-          <StyledTableHeadCell>Price</StyledTableHeadCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {industries.map((cat) => (
-          <TableRow key={cat.id}>
-            <StyledTableCell>{cat.categoryName}</StyledTableCell>
-            <StyledTableCell>${cat.categoryPrice}</StyledTableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
-/** Renders the list of target countries */
-function CountryList({ countries }: { countries: TargetCountry[] }) {
-  return (
-    <Table size="small">
-      <TableHead>
-        <TableRow>
-          <StyledTableHeadCell>Country</StyledTableHeadCell>
-          <StyledTableHeadCell>Price</StyledTableHeadCell>
-          <StyledTableHeadCell>Translation</StyledTableHeadCell>
-          <StyledTableHeadCell>Translation Price</StyledTableHeadCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {countries.map((tc) => (
-          <TableRow key={tc.id}>
-            <StyledTableCell>{tc.countryName}</StyledTableCell>
-            <StyledTableCell>${tc.countryPrice}</StyledTableCell>
-            <StyledTableCell>{tc.translation}</StyledTableCell>
-            <StyledTableCell>${tc.translationPrice}</StyledTableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
 // -------------- Main Component -------------- //
 
 const OrdersView: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [token, setToken] = useState<string | null>(null);
 
@@ -263,14 +242,32 @@ const OrdersView: React.FC = () => {
     severity: 'success',
   });
 
-  // Pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // -------------- Effects -------------- //
+  // 1) Define a reusable fetch function
+  const fetchOrders = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await axios.get<Order[]>(`${BASE_URL}/v1/pr/user-order-list`, {
+        headers: {
+          'x-api-key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOrders(response.data);
+    } catch (error: any) {
+      console.error('Error fetching orders:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch orders.',
+        severity: 'error',
+      });
+    }
+  }, [token]);
 
+  // 2) Retrieve token from cookies
   useEffect(() => {
-    // Get Token from Cookies
     const userTokenString = Cookies.get('user');
     if (userTokenString) {
       try {
@@ -282,56 +279,40 @@ const OrdersView: React.FC = () => {
     }
   }, []);
 
+  // 3) Load orders after token is set
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!token) return;
-      try {
-        const response = await axios.get<Order[]>(`${BASE_URL}/v1/pr/user-order-list`, {
-          headers: {
-            'x-api-key': X_API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setOrders(response.data);
-      } catch (error: any) {
-        console.error('Error fetching orders:', error);
-        setSnackbar({
-          open: true,
-          message: 'Failed to fetch orders.',
-          severity: 'error',
-        });
-      }
-    };
-
     fetchOrders();
-  }, [token]);
+  }, [fetchOrders]);
 
-  // -------------- Handlers -------------- //
-
-  const handleOpenDialog = (order: Order) => {
-    setSelectedOrder(order);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedOrder(null);
-  };
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
+  // 4) Row expansion toggle
   const toggleRowExpansion = (orderId: number) => {
     setExpandedRows((prev) =>
       prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
     );
   };
 
+  // 5) PR Submission success callback
+  const handleSinglePrSuccess = () => {
+    // Re-fetch orders to update the table
+    fetchOrders();
+    // Optionally show a success message
+    setSnackbar({ open: true, message: 'Single PR added successfully!', severity: 'success' });
+  };
+
+  // 6) Dialog open/close
+  const handleOpenDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setOpenDialog(true);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedOrder(null);
+  };
+
+  // 7) Pagination
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
-
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -339,8 +320,7 @@ const OrdersView: React.FC = () => {
     setPage(0);
   };
 
-  // -------------- Render -------------- //
-
+  // 8) Render
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" sx={{ mb: 2 }}>
@@ -356,15 +336,13 @@ const OrdersView: React.FC = () => {
               <TableCell>Total Price</TableCell>
               <TableCell>Order Status</TableCell>
               <TableCell>Payment Status</TableCell>
-              {/* Replace the "Created At" column with "PRs Used / Total" */}
               <TableCell>Used / Total PRs</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
             {orders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => {
-              // We assume your API returns planRecords and we show the first one (or 0 fallback)
+              // Extract used/total from planRecords if available
               let usedPRS = 0;
               let totalPRS = 0;
               if (order.planRecords && order.planRecords.length > 0) {
@@ -392,14 +370,10 @@ const OrdersView: React.FC = () => {
                         size="small"
                       />
                     </TableCell>
-
-                    {/* Show used_prs / total_prs */}
                     <TableCell>
                       {usedPRS} / {totalPRS}
                     </TableCell>
-
                     <TableCell>
-                      {/* Details Dialog */}
                       <Button
                         variant="outlined"
                         size="small"
@@ -408,7 +382,6 @@ const OrdersView: React.FC = () => {
                         Details
                       </Button>
 
-                      {/* Toggle Single PR Form if "paid" + "approved" */}
                       {order.payment_status.toLowerCase() === 'paid' &&
                         order.pr_status.toLowerCase() === 'approved' && (
                           <Button
@@ -422,14 +395,14 @@ const OrdersView: React.FC = () => {
                     </TableCell>
                   </TableRow>
 
-                  {/* Expandable Row (e.g. to add Single PR) */}
                   {expandedRows.includes(order.id) && (
                     <TableRow>
                       <TableCell colSpan={7}>
                         <SinglePrDetailsForm
                           orderId={order.id}
-                          // We'll force-cast the prType to match the two-literal union in SinglePrDetailsForm
                           prType={order.prType as 'IMCWire Written' | 'Self-Written'}
+                          /** Pass callback to refresh data on success */
+                          onSuccess={handleSinglePrSuccess}
                         />
                       </TableCell>
                     </TableRow>
@@ -451,7 +424,6 @@ const OrdersView: React.FC = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
 
-      {/* Dialog for Selected Order */}
       <StyledDialog
         open={openDialog}
         onClose={handleCloseDialog}
@@ -473,7 +445,6 @@ const OrdersView: React.FC = () => {
         <DialogContent dividers>
           {selectedOrder && (
             <>
-              {/* ---- Basic Plan Info ---- */}
               <Typography variant="h6" gutterBottom>
                 Plan Information
               </Typography>
@@ -481,7 +452,6 @@ const OrdersView: React.FC = () => {
 
               <Divider sx={{ my: 2 }} />
 
-              {/* ---- Industry Categories ---- */}
               <Typography variant="h6" gutterBottom>
                 Industry Categories
               </Typography>
@@ -493,7 +463,6 @@ const OrdersView: React.FC = () => {
 
               <Divider sx={{ my: 2 }} />
 
-              {/* ---- Target Countries ---- */}
               <Typography variant="h6" gutterBottom>
                 Target Countries
               </Typography>
@@ -513,7 +482,7 @@ const OrdersView: React.FC = () => {
         </DialogActions>
       </StyledDialog>
 
-      {/* Snackbar Notifications */}
+      {/* Snackbar for success/error messages */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
