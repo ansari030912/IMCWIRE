@@ -7,26 +7,19 @@ import axios from 'axios';
 
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 import { useRouter } from 'src/routes/hooks';
-import { Iconify } from 'src/components/iconify';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ----------------------------------------------------------------------
 
-export function SignUpView() {
+export function ForgotPasswordView() {
   const router = useRouter();
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -35,7 +28,7 @@ export function SignUpView() {
   }>({
     open: false,
     message: '',
-    severity: 'success', // Default to 'success'
+    severity: 'success',
   });
 
   const validateEmail = (email: string) => {
@@ -43,14 +36,9 @@ export function SignUpView() {
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-  };
-
-  const handleSignUp = useCallback(async () => {
-    if (!fullName || !email || !password) {
-      setSnackbar({ open: true, message: 'All fields are required.', severity: 'error' });
+  const handleForgotPassword = useCallback(async () => {
+    if (!email) {
+      setSnackbar({ open: true, message: 'Email is required.', severity: 'error' });
       return;
     }
 
@@ -59,26 +47,11 @@ export function SignUpView() {
       return;
     }
 
-    if (!validatePassword(password)) {
-      setSnackbar({
-        open: true,
-        message:
-          'Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
-        severity: 'error',
-      });
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await axios.post(
-        `${BASE_URL}/v1/account/register`,
-        {
-          username: fullName,
-          email,
-          password,
-          isAgency: false,
-        },
+        `${BASE_URL}/v1/account/forgot-password`,
+        { email },
         {
           headers: {
             'x-api-key': X_API_KEY,
@@ -86,43 +59,30 @@ export function SignUpView() {
         }
       );
 
-      if (response.status === 201) {
-        setSnackbar({ open: true, message: 'Registration successful!', severity: 'success' });
-        setTimeout(() => router.push('/login'), 2000);
+      if (response.status === 200) {
+        setSnackbar({ open: true, message: 'Password reset email sent successfully. Please check your inbox.', severity: 'success' });
       }
     } catch (error) {
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || 'Registration failed.',
+        message: error.response?.data?.message || 'Failed to send password reset email.',
         severity: 'error',
       });
     } finally {
       setLoading(false);
     }
-  }, [router, fullName, email, password]);
+  }, [email]);
 
   return (
     <>
       <Box gap={1.5} display="flex" flexDirection="column" alignItems="center" sx={{ mb: 5 }}>
-        <Typography variant="h5">Register Account</Typography>
+        <Typography variant="h5">Forgot Password</Typography>
         <Typography variant="body2" color="text.secondary">
-          Already have an account?
-          <Link to="/login" style={{ marginLeft: '4px', textDecoration: 'none', color: 'blue' }}>
-            Login
-          </Link>
+          Enter your email to receive password reset instructions.
         </Typography>
       </Box>
 
       <Box display="flex" flexDirection="column" alignItems="flex-end">
-        <TextField
-          fullWidth
-          name="full_name"
-          label="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ mb: 3 }}
-        />
         <TextField
           fullWidth
           name="email"
@@ -132,25 +92,6 @@ export function SignUpView() {
           InputLabelProps={{ shrink: true }}
           sx={{ mb: 3 }}
         />
-        <TextField
-          fullWidth
-          name="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          type={showPassword ? 'text' : 'password'}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mb: 3 }}
-        />
 
         <LoadingButton
           fullWidth
@@ -158,10 +99,10 @@ export function SignUpView() {
           type="submit"
           color="inherit"
           variant="contained"
-          onClick={handleSignUp}
+          onClick={handleForgotPassword}
           loading={loading}
         >
-          Register
+          Reset Password
         </LoadingButton>
       </Box>
 

@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { UpdateProfileView } from 'src/sections/auth/update-profile';
+import { ResetPasswordView } from 'src/sections/auth/reset-password';
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,10 @@ export default function Page() {
   return (
     <>
       <Helmet>
-        <title> {`Setting - ${CONFIG.appName}`}</title>
+        <title> {`Reset passowrd - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <UpdateProfileView />
+      <ResetPasswordView />
     </>
   );
 }
