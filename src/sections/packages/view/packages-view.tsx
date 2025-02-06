@@ -28,6 +28,7 @@ import {
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+import { useRouter } from 'src/routes/hooks';
 
 // ----------------------------
 // Adjust these to your environment
@@ -81,6 +82,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const [basePlanPrice, setBasePlanPrice] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -97,7 +99,8 @@ export function PackagesView({ id }: { id: string | undefined }) {
           setBasePlanPrice(Number(response.data.totalPlanPrice));
         }
       } catch (error) {
-        setErrorMessage('Login failed. Please try again.');
+        setErrorMessage('Not Valid Plan. Please try again.');
+        router.push('/plans');
         console.error('Error during login:', error);
       }
     };
@@ -920,49 +923,48 @@ export function PackagesView({ id }: { id: string | undefined }) {
   // ------------------------------------------------------------------------------
   return (
     <DashboardContent>
-      {/* Title */}
-      <Box display="flex" alignItems="center" mb={5}>
-        <Typography variant="h4" flexGrow={1} sx={{ pl: 3 }}>
-          Packages
-        </Typography>
-      </Box>
+      {basePlanPrice === 0 ? (
+        ''
+      ) : (
+        <>
+          <Box display="flex" alignItems="center" mb={5}>
+            <Typography variant="h4" flexGrow={1} sx={{ pl: 3 }}>
+              Packages
+            </Typography>
+          </Box>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={4000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
+          <Box>
+            <Grid container spacing={2}>
+              {/* STEP TIMELINE */}
+              <Grid item lg={6} xl={3}>
+                <div className="container mx-auto p-6">
+                  <h1 className="text-2xl font-bold mb-8">Your campaign starts here</h1>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* Content */}
-      <Box>
-        <Grid container spacing={2}>
-          {/* STEP TIMELINE */}
-          <Grid item lg={6} xl={3}>
-            <div className="container mx-auto p-6">
-              <h1 className="text-2xl font-bold mb-8">Your campaign starts here</h1>
-
-              <div className="grid grid-cols-1 gap-8">
-                <div>
-                  <div className="relative">
-                    {steps.map((step, index) => (
-                      <div key={step.id} className="flex items-start mb-8 relative">
-                        {/* Vertical Line */}
-                        {index !== steps.length - 1 && (
-                          <div
-                            className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%+16px)] transition-colors duration-300
+                  <div className="grid grid-cols-1 gap-8">
+                    <div>
+                      <div className="relative">
+                        {steps.map((step, index) => (
+                          <div key={step.id} className="flex items-start mb-8 relative">
+                            {/* Vertical Line */}
+                            {index !== steps.length - 1 && (
+                              <div
+                                className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%+16px)] transition-colors duration-300
                               ${currentStep > step.id ? 'bg-purple-800' : 'bg-gray-200'}`}
-                          />
-                        )}
-                        {/* Circle + Text */}
-                        <div className="flex items-center gap-3 relative z-10">
-                          <div
-                            className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-300
+                              />
+                            )}
+                            {/* Circle + Text */}
+                            <div className="flex items-center gap-3 relative z-10">
+                              <div
+                                className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-300
                               ${
                                 step.id === currentStep
                                   ? 'border-purple-600 bg-white'
@@ -970,105 +972,101 @@ export function PackagesView({ id }: { id: string | undefined }) {
                                     ? 'border-purple-600 bg-purple-800'
                                     : 'border-gray-300 bg-white'
                               }`}
-                          >
-                            {step.id === currentStep && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-purple-800" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-xs font-medium transition-colors duration-300
+                              >
+                                {step.id === currentStep && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-purple-800" />
+                                )}
+                              </div>
+                              <span
+                                className={`text-xs font-medium transition-colors duration-300
                               ${step.id === currentStep ? 'text-purple-600' : 'text-gray-500'}`}
-                          >
-                            {step.name}
-                          </span>
-                        </div>
+                              >
+                                {step.name}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </Grid>
+              </Grid>
 
-          {/* MAIN CONTENT by step */}
-          <Grid item lg={6} xl={5} className="w-full">
-            {currentStep === 1 && renderStepOne()}
-            {currentStep === 2 && renderStepTwo()}
+              {/* MAIN CONTENT by step */}
+              <Grid item lg={6} xl={5} className="w-full">
+                {currentStep === 1 && renderStepOne()}
+                {currentStep === 2 && renderStepTwo()}
 
-            {/* If user is logged in, step 3 => Checkout */}
-            {isAuthenticated && currentStep === 3 && renderCheckout()}
+                {/* If user is logged in, step 3 => Checkout */}
+                {isAuthenticated && currentStep === 3 && renderCheckout()}
 
-            {/* If user is NOT logged in, step 3 => Register/Login, step 4 => Checkout */}
-            {!isAuthenticated && (
-              <>
-                {currentStep === 3 && renderRegisterOrLogin()}
-                {currentStep === 4 && renderCheckout()}
-              </>
-            )}
-          </Grid>
+                {/* If user is NOT logged in, step 3 => Register/Login, step 4 => Checkout */}
+                {!isAuthenticated && (
+                  <>
+                    {currentStep === 3 && renderRegisterOrLogin()}
+                    {currentStep === 4 && renderCheckout()}
+                  </>
+                )}
+              </Grid>
 
-          {/* SIDE CARD (Price Summary) */}
-          <Grid item lg={6} xl={4} className="w-full">
-            <Card className="p-6 w-full">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <div className="border-t pt-4 mt-4 text-sm space-y-2">
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Base Plan:</span>
-                  <span className="text-gray-700 font-bold">${basePlanPrice}</span>
-                </div>
+              {/* SIDE CARD (Price Summary) */}
+              <Grid item lg={6} xl={4} className="w-full">
+                <Card className="p-6 w-full">
+                  <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+                  <div className="border-t pt-4 mt-4 text-sm space-y-2">
+                    <div className="bg-gray-100 p-2 flex justify-between">
+                      <span className="text-gray-500 font-bold">Base Plan:</span>
+                      <span className="text-gray-700 font-bold">${basePlanPrice}</span>
+                    </div>
 
-                <div className="bg-white p-2 flex justify-between">
-                  <span className="text-gray-700 font-bold">Additional Categories:</span>
-                  <span
-                    className={`font-bold ${
-                      additionalCategoriesCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${additionalCategoriesCost}
-                  </span>
-                </div>
+                    <div className="bg-white p-2 flex justify-between">
+                      <span className="text-gray-700 font-bold">Additional Categories:</span>
+                      <span
+                        className={`font-bold ${additionalCategoriesCost === 0 ? 'text-green-500' : 'text-red-500'}`}
+                      >
+                        +${additionalCategoriesCost}
+                      </span>
+                    </div>
 
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Additional Countries:</span>
-                  <span
-                    className={`font-bold ${
-                      additionalCountriesCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${additionalCountriesCost}
-                  </span>
-                </div>
+                    <div className="bg-gray-100 p-2 flex justify-between">
+                      <span className="text-gray-500 font-bold">Additional Countries:</span>
+                      <span
+                        className={`font-bold ${additionalCountriesCost === 0 ? 'text-green-500' : 'text-red-500'}`}
+                      >
+                        +${additionalCountriesCost}
+                      </span>
+                    </div>
 
-                <div className="bg-white p-2 flex justify-between">
-                  <span className="text-gray-700 font-bold">Translations:</span>
-                  <span
-                    className={`font-bold ${
-                      totalTranslationCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${totalTranslationCost}
-                  </span>
-                </div>
+                    <div className="bg-white p-2 flex justify-between">
+                      <span className="text-gray-700 font-bold">Translations:</span>
+                      <span
+                        className={`font-bold ${totalTranslationCost === 0 ? 'text-green-500' : 'text-red-500'}`}
+                      >
+                        +${totalTranslationCost}
+                      </span>
+                    </div>
 
-                {/* Show the $120 if user selected "write" */}
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Write & Publication:</span>
-                  <span
-                    className={`font-bold ${writeCost > 0 ? 'text-red-500' : 'text-green-500'}`}
-                  >
-                    +${writeCost}
-                  </span>
-                </div>
+                    {/* Show the $120 if user selected "write" */}
+                    <div className="bg-gray-100 p-2 flex justify-between">
+                      <span className="text-gray-500 font-bold">Write & Publication:</span>
+                      <span
+                        className={`font-bold ${writeCost > 0 ? 'text-red-500' : 'text-green-500'}`}
+                      >
+                        +${writeCost}
+                      </span>
+                    </div>
 
-                <div className="bg-white p-2 flex justify-between font-bold">
-                  <span className="text-gray-700 text-xl font-bold">Total:</span>
-                  <span className="text-purple-600 text-xl font-bold">${finalTotal}</span>
-                </div>
-              </div>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
+                    <div className="bg-white p-2 flex justify-between font-bold">
+                      <span className="text-gray-700 text-xl font-bold">Total:</span>
+                      <span className="text-purple-600 text-xl font-bold">${finalTotal}</span>
+                    </div>
+                  </div>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </>
+      )}
     </DashboardContent>
   );
 }

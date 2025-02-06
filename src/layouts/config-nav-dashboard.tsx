@@ -30,7 +30,7 @@ export const userNavData = [
   },
   {
     title: 'Packages',
-    items: [{ title: 'Packages', path: '/packages', icon: icon('ic-plans') }],
+    items: [{ title: 'Plans', path: '/plans', icon: icon('ic-plans') }],
   },
   {
     title: 'Settings',
