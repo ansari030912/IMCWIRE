@@ -1,33 +1,27 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable import/no-extraneous-dependencies */
-import Cookies from 'js-cookie';
-import { Link } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
-import { useRouter } from 'src/routes/hooks';
-import { Iconify } from 'src/components/iconify';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ----------------------------------------------------------------------
 
-export function SignUpView() {
-  const router = useRouter();
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+export function ResetPasswordView() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -35,27 +29,32 @@ export function SignUpView() {
   }>({
     open: false,
     message: '',
-    severity: 'success', // Default to 'success'
+    severity: 'success',
   });
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const queryParams = new URLSearchParams(location.search);
+  const email = queryParams.get('email');
+  const token = queryParams.get('token');
 
   const validatePassword = (password: string) => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
   };
 
-  const handleSignUp = useCallback(async () => {
-    if (!fullName || !email || !password) {
-      setSnackbar({ open: true, message: 'All fields are required.', severity: 'error' });
-      return;
-    }
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    setSnackbar({ open: false, message: '', severity: 'error' });
+  };
 
-    if (!validateEmail(email)) {
-      setSnackbar({ open: true, message: 'Invalid email format.', severity: 'error' });
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+    setSnackbar({ open: false, message: '', severity: 'error' });
+    setPasswordMatch(e.target.value === password);
+  };
+
+  const handleResetPassword = async () => {
+    if (!password || !confirmPassword) {
+      setSnackbar({ open: true, message: 'All fields are required.', severity: 'error' });
       return;
     }
 
@@ -69,15 +68,19 @@ export function SignUpView() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setSnackbar({ open: true, message: 'Passwords do not match.', severity: 'error' });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(
-        `${BASE_URL}/v1/account/register`,
+        `${BASE_URL}/v1/account/reset-password`,
         {
-          username: fullName,
           email,
-          password,
-          isAgency: false,
+          token,
+          newPassword: password,
         },
         {
           headers: {
@@ -86,82 +89,62 @@ export function SignUpView() {
         }
       );
 
-      if (response.status === 201) {
-        setSnackbar({ open: true, message: 'Registration successful!', severity: 'success' });
-        setTimeout(() => router.push('/login'), 2000);
+      if (response.status === 200) {
+        setSnackbar({ open: true, message: 'Password reset successfully!', severity: 'success' });
+        setTimeout(() => navigate('/login'), 2000);
       }
     } catch (error) {
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || 'Registration failed.',
+        message: error.response?.data?.message || 'Failed to reset password.',
         severity: 'error',
       });
     } finally {
       setLoading(false);
     }
-  }, [router, fullName, email, password]);
+  };
 
   return (
     <>
       <Box gap={1.5} display="flex" flexDirection="column" alignItems="center" sx={{ mb: 5 }}>
-        <Typography variant="h5">Register Account</Typography>
+        <Typography variant="h5">Reset Password</Typography>
         <Typography variant="body2" color="text.secondary">
-          Already have an account?
-          <Link to="/login" style={{ marginLeft: '4px', textDecoration: 'none', color: 'blue' }}>
-            Login
-          </Link>
+          Enter your new password below.
         </Typography>
       </Box>
 
       <Box display="flex" flexDirection="column" alignItems="flex-end">
         <TextField
           fullWidth
-          name="full_name"
-          label="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ mb: 3 }}
-        />
-        <TextField
-          fullWidth
-          name="email"
-          label="Email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ mb: 3 }}
-        />
-        <TextField
-          fullWidth
           name="password"
-          label="Password"
+          label="New Password"
+          type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
           InputLabelProps={{ shrink: true }}
-          type={showPassword ? 'text' : 'password'}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
           sx={{ mb: 3 }}
         />
-
+        <TextField
+          fullWidth
+          name="confirmPassword"
+          label="Confirm Password"
+          type="password"
+          value={confirmPassword}
+          onChange={handleConfirmPasswordChange}
+          InputLabelProps={{ shrink: true }}
+          sx={{ mb: 3 }}
+        />
+        {passwordMatch && confirmPassword && <Typography color="green">Passwords match</Typography>}
         <LoadingButton
           fullWidth
           size="large"
           type="submit"
           color="inherit"
           variant="contained"
-          onClick={handleSignUp}
+          onClick={handleResetPassword}
           loading={loading}
         >
-          Register
+          Reset Password
         </LoadingButton>
       </Box>
 

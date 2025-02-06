@@ -25,7 +25,7 @@ const CompaniesPage = lazy(() => import('src/pages/companies'));
 const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
-const ProfilePage = lazy(() => import('src/pages/profile'));
+// const ProfilePage = lazy(() => import('src/pages/profile'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
@@ -33,7 +33,6 @@ const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
-const AddCupponView = lazy(() => import('src/pages/add-custom-plan'));
 
 // Loading fallback
 const renderFallback = (
@@ -98,6 +97,11 @@ function useRoutesByRole() {
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'plans', element: <PlansPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
@@ -105,8 +109,25 @@ function useRoutesByRole() {
     return [
       { element: <HomePage />, index: true },
       { path: 'press-release', element: <PressReleasePage /> },
-      { path: 'companies', element: <BlogPage /> },
-      { path: 'add-press-release', element: <BlogPage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
+      // { path: 'faqs', element: <FaqsPage /> },
+      { path: 'add-faqs', element: <AddFaqsPage /> },
+      // { path: 'how-it-works', element: <HowItWorkage /> },
+      { path: 'packages', element: <ProductsPage /> },
+      { path: 'add-packages', element: <AddPackagesPage /> },
+      { path: 'companies', element: <CompaniesPage /> },
+      { path: 'add-coupons', element: <AddCuponsPage /> },
+      // { path: 'users', element: <UserPage /> },
+      // { path: 'purchase/:id', element: <PlanPurchasePage /> },
+      { path: 'add-videos', element: <AddVideosPage /> },
+      // { path: 'plans', element: <PlansPage /> },
+      { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
@@ -116,18 +137,23 @@ function useRoutesByRole() {
       { path: 'press-release', element: <PressReleasePage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
-      { path: 'faqs', element: <FaqsPage /> },
+      // { path: 'faqs', element: <FaqsPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
-      { path: 'how-it-works', element: <HowItWorkage /> },
+      // { path: 'how-it-works', element: <HowItWorkage /> },
       { path: 'packages', element: <ProductsPage /> },
       { path: 'add-packages', element: <AddPackagesPage /> },
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'add-coupons', element: <AddCuponsPage /> },
       { path: 'users', element: <UserPage /> },
-      { path: 'purchase/:id', element: <PlanPurchasePage /> },
+      // { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'add-videos', element: <AddVideosPage /> },
-      { path: 'plans', element: <PlansPage /> },
+      // { path: 'plans', element: <PlansPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
@@ -175,8 +201,39 @@ export function Router() {
         </PublicRoute>
       ),
     },
+    {
+      path: 'forgot-password',
+      element: (
+        <PublicRoute>
+          <AuthLayout>
+            <ForgotPage />
+          </AuthLayout>
+        </PublicRoute>
+      ),
+    },
+    {
+      path: 'reset-password',
+      element: (
+        <PublicRoute>
+          <AuthLayout>
+            <ResetPasswordPage />
+          </AuthLayout>
+        </PublicRoute>
+      ),
+    },
     { path: '404', element: <Page404 /> },
     { path: '*', element: <Navigate to="/404" replace /> },
+    {
+      path: 'custom-invoice/:id',
+      element: (
+        <div>
+          <br />
+          <br />
+          <br />
+          <CustomPlanCheckOutPage />
+        </div>
+      ),
+    },
     {
       path: 'purchase/:id',
       element: (
