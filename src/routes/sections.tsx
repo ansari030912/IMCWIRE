@@ -25,6 +25,11 @@ const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
+const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
+const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
+const ForgotPage = lazy(() => import('src/pages/forgot-password'));
+
+const SettingPage = lazy(() => import('src/pages/setting'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
 const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
@@ -35,7 +40,6 @@ const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
 const ForgotPage = lazy(() => import('src/pages/forgot-password'));
 const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
 const SettingPage = lazy(() => import('src/pages/setting'));
-const AllOrdersAdminPage = lazy(() => import('src/pages/all-orders'));
 
 // Loading fallback
 const renderFallback = (
@@ -96,7 +100,7 @@ function useRoutesByRole() {
       { path: 'faqs', element: <FaqsPage /> },
       { path: 'how-it-works', element: <HowItWorkage /> },
       { path: 'companies', element: <CompaniesPage /> },
-      // { path: 'packages', element: <ProductsPage /> },
+      { path: 'packages', element: <ProductsPage /> },
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'plans', element: <PlansPage /> },

@@ -24,8 +24,8 @@ export const userNavData = [
   {
     title: 'Companies',
     items: [
-      { title: 'View Companies', path: '/companies', icon: icon('ic-company') },
-      { title: 'Add Company', path: '/add-company', icon: icon('ic-add-company') },
+      // { title: 'View Companies', path: '/companies', icon: icon('ic-company') },
+      { title: 'Companies', path: '/add-company', icon: icon('ic-add-company') },
     ],
   },
   {
