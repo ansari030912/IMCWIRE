@@ -1,32 +1,37 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import type { SelectChangeEvent } from '@mui/material';
+
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import React, { useState, useEffect } from 'react';
+
 import {
-  TextField,
-  Button,
-  Chip,
   Box,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  SelectChangeEvent,
+  Chip,
   Grid,
-  InputAdornment,
+  Alert,
+  Button,
+  Select,
   Dialog,
+  MenuItem,
+  Snackbar,
+  TextField,
+  InputLabel,
+  IconButton,
+  FormControl,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Snackbar,
-  Alert,
+  InputAdornment,
   CircularProgress,
-} from "@mui/material";
-import axios from "axios";
-import Cookies from "js-cookie";
+} from '@mui/material';
 
+import { Iconify } from 'src/components/iconify';
 // You can adjust these imports to match your project structure
-import { BASE_URL, X_API_KEY } from "src/components/Urls/BaseApiUrls";
-import AddCompanyForm from "./view/AddCompanyForm";
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+
+import AddCompanyForm from './view/AddCompanyForm';
 
 /* ------------------------------------------------------------------
    1) Types & Interfaces
@@ -35,7 +40,7 @@ import AddCompanyForm from "./view/AddCompanyForm";
 interface SinglePrDetailsFormProps {
   orderId: number;
   // The PR Type determines if we upload an existing PDF or use IMCWire's writing
-  prType: "IMCWire Written" | "Self-Written";
+  prType: 'IMCWire Written' | 'Self-Written';
   onSuccess?: () => void;
 }
 
@@ -60,16 +65,20 @@ interface Company {
    2) Main Component
    ------------------------------------------------------------------ */
 
-const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prType, onSuccess  }) => {
+const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
+  orderId,
+  prType,
+  onSuccess,
+}) => {
   // Authentication & Data
   const [token, setToken] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
 
   // Form Fields
-  const [selectedCompany, setSelectedCompany] = useState<string>("");
-  const [url, setUrl] = useState<string>("");
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [url, setUrl] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState<string>("");
+  const [newTag, setNewTag] = useState<string>('');
 
   // For file uploads (Self-Written)
   const [file, setFile] = useState<File | null>(null);
@@ -78,20 +87,20 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
   const [openAddCompanyDialog, setOpenAddCompanyDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   /* ----------------------------------------------------------------
      2.1) useEffect: Retrieve token from Cookies
      ---------------------------------------------------------------- */
   useEffect(() => {
-    const userTokenString = Cookies.get("user");
+    const userTokenString = Cookies.get('user');
     if (userTokenString) {
       try {
         const userToken = JSON.parse(userTokenString);
         setToken(userToken.token);
       } catch (error) {
-        console.error("Error parsing user token:", error);
+        console.error('Error parsing user token:', error);
       }
     }
   }, []);
@@ -107,14 +116,14 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
       try {
         const response = await axios.get<Company[]>(`${BASE_URL}/v1/company/company-list`, {
           headers: {
-            "x-api-key": X_API_KEY,
+            'x-api-key': X_API_KEY,
             Authorization: `Bearer ${token}`,
           },
         });
         setCompanies(response.data);
       } catch (error) {
-        console.error("Failed to fetch companies", error);
-        showSnackbar("Failed to load companies!", "error");
+        console.error('Failed to fetch companies', error);
+        showSnackbar('Failed to load companies!', 'error');
       } finally {
         setLoading(false);
       }
@@ -131,7 +140,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags((prev) => [...prev, newTag.trim()]);
-      setNewTag("");
+      setNewTag('');
     }
   };
   const handleDeleteTag = (tagToDelete: string) => {
@@ -157,12 +166,12 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
 
     const apiUrl = `${BASE_URL}/v1/pr/submit-single-pr`;
     const headers = {
-      "x-api-key": X_API_KEY,
+      'x-api-key': X_API_KEY,
       Authorization: `Bearer ${token}`,
     };
 
     try {
-      if (prType === "IMCWire Written") {
+      if (prType === 'IMCWire Written') {
         // JSON body (IMCWire will create the PR from URL + tags)
         const data = {
           pr_id: orderId,
@@ -174,23 +183,23 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
       } else {
         // FormData if the user is uploading a PDF
         const formData = new FormData();
-        formData.append("pr_id", orderId.toString());
-        formData.append("company_id", selectedCompany);
+        formData.append('pr_id', orderId.toString());
+        formData.append('company_id', selectedCompany);
         if (file) {
-          formData.append("pdf", file);
+          formData.append('pdf', file);
         }
         await axios.post(apiUrl, formData, { headers });
       }
 
-      showSnackbar("PR details submitted successfully!", "success");
+      showSnackbar('PR details submitted successfully!', 'success');
       if (onSuccess) {
         onSuccess();
       }
       // (Optional) Clear fields after success
       resetForm();
     } catch (error) {
-      console.error("Error submitting PR details:", error);
-      showSnackbar("Error submitting PR details!", "error");
+      console.error('Error submitting PR details:', error);
+      showSnackbar('Error submitting PR details!', 'error');
     } finally {
       setLoading(false);
     }
@@ -203,14 +212,16 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
   /* ----------------------------------------------------------------
      4) Add new Company from AddCompanyForm
      ---------------------------------------------------------------- */
-  const handleAddCompany = async (newCompanyData: Omit<Company, "id" | "created_at" | "updated_at">) => {
+  const handleAddCompany = async (
+    newCompanyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>
+  ) => {
     if (!token) return;
     setLoading(true);
 
     try {
       const response = await axios.post(`${BASE_URL}/v1/company/add-company`, newCompanyData, {
         headers: {
-          "x-api-key": X_API_KEY,
+          'x-api-key': X_API_KEY,
           Authorization: `Bearer ${token}`,
         },
       });
@@ -220,10 +231,10 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
       setSelectedCompany(addedCompany.id.toString());
       handleCloseAddCompanyDialog();
 
-      showSnackbar("Company added successfully!", "success");
+      showSnackbar('Company added successfully!', 'success');
     } catch (error) {
-      console.error("Failed to add company", error);
-      showSnackbar("Failed to add new company!", "error");
+      console.error('Failed to add company', error);
+      showSnackbar('Failed to add new company!', 'error');
     } finally {
       setLoading(false);
     }
@@ -232,16 +243,16 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
   /* ----------------------------------------------------------------
      5) Utility: Show snackbar & reset form
      ---------------------------------------------------------------- */
-  const showSnackbar = (message: string, severity: "success" | "error") => {
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
   };
 
   const resetForm = () => {
-    setUrl("");
+    setUrl('');
     setTags([]);
-    setNewTag("");
+    setNewTag('');
     setFile(null);
     // (Optionally) do not reset the selectedCompany if user might want to reuse
     // setSelectedCompany("");
@@ -251,18 +262,18 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
      6) Render
      ---------------------------------------------------------------- */
   return (
-    <Box sx={{ position: "relative" }}>
+    <Box sx={{ position: 'relative' }}>
       {/* Loading overlay (optional) */}
       {loading && (
         <Box
           sx={{
-            position: "absolute",
+            position: 'absolute',
             inset: 0,
-            bgcolor: "rgba(255,255,255,0.5)",
+            bgcolor: 'rgba(255,255,255,0.5)',
             zIndex: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <CircularProgress />
@@ -271,7 +282,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
 
       <form onSubmit={handleSubmit}>
         {/* If it is IMCWire Written, we ask for URL & tags */}
-        {prType === "IMCWire Written" ? (
+        {prType === 'IMCWire Written' ? (
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
@@ -299,10 +310,10 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
                     </InputAdornment>
                   ),
                 }}
-                onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
               />
               {/* Tag chips */}
-              <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
+              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {tags.map((tag) => (
                   <Chip
                     key={tag}
@@ -329,7 +340,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
         )}
 
         {/* Company Selection */}
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mt: 3, display: "flex", alignContent: "start", gap: 2 }}>
           <FormControl fullWidth>
             <InputLabel id="company-select-label">Company</InputLabel>
             <Select
@@ -355,23 +366,13 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
             </Select>
           </FormControl>
 
-          <Button
-            variant="outlined"
-            onClick={handleOpenAddCompanyDialog}
-            sx={{ mt: 2 }}
-          >
+          <Button variant="outlined" sx={{textWrap: "nowrap", px: 5}} onClick={handleOpenAddCompanyDialog}>
             Add New Company
           </Button>
         </Box>
 
         {/* Submit */}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 3 }}
-        >
+        <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
           Save PR Details
         </Button>
       </form>
@@ -384,6 +385,13 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
         maxWidth="lg"
       >
         <DialogTitle>Add New Company</DialogTitle>
+        <IconButton
+          aria-label="close"
+          onClick={handleCloseAddCompanyDialog}
+          sx={{ position: 'absolute', right: 8, top: 8, color: 'gray' }}
+        >
+          <Iconify icon="eva:close-fill" width={24} height={24} />
+        </IconButton>
         <DialogContent>
           {/* 
             AddCompanyForm is your custom form to add a new Company.
@@ -406,12 +414,12 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({ orderId, prTy
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
           severity={snackbarSeverity}
-          sx={{ width: "100%" }}
+          sx={{ width: '100%' }}
         >
           {snackbarMessage}
         </Alert>
