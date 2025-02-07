@@ -504,11 +504,7 @@ type OrderDetailDialogProps = {
   onClose: () => void;
   order: any | null;
   onSinglePRUpdate: (prId: number, newStatus: string) => void;
-  onOrderStatusUpdate: (
-    orderId: number,
-    newPrStatus: string,
-    newPaymentStatus: string
-  ) => void;
+  onOrderStatusUpdate: (orderId: number, newPrStatus: string, newPaymentStatus: string) => void;
 };
 
 function OrderDetailDialog({
@@ -520,7 +516,8 @@ function OrderDetailDialog({
 }: OrderDetailDialogProps) {
   if (!order) return null;
 
-  const planRecord = order.planRecords && order.planRecords.length > 0 ? order.planRecords[0] : null;
+  const planRecord =
+    order.planRecords && order.planRecords.length > 0 ? order.planRecords[0] : null;
   const totalPrs = planRecord?.total_prs || order.numberOfPR || 0;
   const usedPrs = planRecord?.used_prs || 0;
   const leftPrs = totalPrs - usedPrs;
@@ -666,17 +663,24 @@ type UpdateEntireOrderStatusProps = {
   onOrderStatusUpdate: (orderId: number, newPrStatus: string, newPaymentStatus: string) => void;
 };
 
-export function UpdateEntireOrderStatus({ order, onOrderStatusUpdate }: UpdateEntireOrderStatusProps) {
+export function UpdateEntireOrderStatus({
+  order,
+  onOrderStatusUpdate,
+}: UpdateEntireOrderStatusProps) {
   const [loading, setLoading] = useState(false);
 
   // If admin doesn't change them, we keep the old (current) values
   const [selectedPrStatus, setSelectedPrStatus] = useState(order.pr_status || 'Pending');
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState(order.payment_status || 'unpaid');
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState(
+    order.payment_status || 'unpaid'
+  );
 
   // Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'info' | 'warning'
+  >('success');
 
   // PR statuses
   const prStatuses = ['Pending', 'Approved', 'Rejected'];
@@ -705,8 +709,8 @@ export function UpdateEntireOrderStatus({ order, onOrderStatusUpdate }: UpdateEn
       await axios.put(
         `${BASE_URL}/v1/pr/superadmin/update-order-status/${order.id}`,
         {
-          newStatus,          // either updated or old
-          newPaymentStatus,   // either updated or old
+          newStatus, // either updated or old
+          newPaymentStatus, // either updated or old
         },
         {
           headers: {
@@ -717,7 +721,9 @@ export function UpdateEntireOrderStatus({ order, onOrderStatusUpdate }: UpdateEn
       );
 
       // Show success
-      setSnackbarMessage(`Order Updated Successfully PR:"${newStatus}", Payment:"${newPaymentStatus}"`);
+      setSnackbarMessage(
+        `Order Updated Successfully PR:"${newStatus}", Payment:"${newPaymentStatus}"`
+      );
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
@@ -895,7 +901,9 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: SinglePRRowProps) {
   // Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('success');
 
   // Step-by-step transitions
   function getAllowedStatuses(current: string): string[] {
@@ -1052,15 +1060,61 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: SinglePRRowProps) {
         </StyledTableCell>
       </TableRow>
 
-      {/* Expand details row (Company, etc) if any */}
       {expanded && detail?.company?.length > 0 && (
         <TableRow>
           <TableCell colSpan={5} sx={{ backgroundColor: '#f8f9fa' }}>
-            {/* Show company details here if needed */}
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Company Details
+              </Typography>
+
+              {detail.company.map((c: any, compIdx: number) => {
+                const dataRows = [
+                  { label: 'Company Name', value: c.companyName },
+                  { label: 'Email', value: c.email },
+                  { label: 'Phone', value: c.phone },
+                  { label: 'Address1', value: c.address1 },
+                  { label: 'Address2', value: c.address2 },
+                  {
+                    label: 'Location',
+                    value: `${c.city}, ${c.state}, ${c.country}`,
+                  },
+                  {
+                    label: 'Website',
+                    value: (
+                      <a href={c.websiteUrl} target="_blank" rel="noopener noreferrer">
+                        {c.websiteUrl}
+                      </a>
+                    ),
+                  },
+                ];
+
+                return (
+                  <Table
+                    key={c.id || compIdx}
+                    size="small"
+                    sx={{ mb: 3, border: '1px solid #ddd', width: '100%' }}
+                  >
+                    <TableBody>
+                      {dataRows.map((row, rowIdx) => (
+                        <TableRow
+                          key={row.label}
+                          sx={{ backgroundColor: rowIdx % 2 === 0 ? '#fafafa' : '#fff' }}
+                        >
+                          <StyledTableCell sx={{ width: 170, fontWeight: 'bold' }}>
+                            {row.label}
+                          </StyledTableCell>
+                          <StyledTableCell>{row.value}</StyledTableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                );
+              })}
+            </Box>
           </TableCell>
         </TableRow>
       )}
-
       {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
