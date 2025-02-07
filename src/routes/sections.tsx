@@ -36,11 +36,6 @@ const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
-const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
-const ForgotPage = lazy(() => import('src/pages/forgot-password'));
-const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
-const SettingPage = lazy(() => import('src/pages/setting'));
-
 // Loading fallback
 const renderFallback = (
   <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">
