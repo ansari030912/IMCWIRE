@@ -93,6 +93,7 @@ export const superAdminNavData = [
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
       { title: 'All Customers', path: '/users', icon: icon('ic-users') },
+      { title: 'All Orders', path: '/all-orders', icon: icon('ic-orders') },
     ],
   },
   {

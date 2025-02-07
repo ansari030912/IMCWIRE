@@ -10,7 +10,6 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 
 // Lazy-loaded components
 const HomePage = lazy(() => import('src/pages/home'));
-const BlogPage = lazy(() => import('src/pages/blog'));
 const SignInPage = lazy(() => import('src/pages/sign-in'));
 const SignUpPage = lazy(() => import('src/pages/sign-up'));
 const ProductsPage = lazy(() => import('src/pages/products'));
@@ -25,7 +24,6 @@ const CompaniesPage = lazy(() => import('src/pages/companies'));
 const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
-// const ProfilePage = lazy(() => import('src/pages/profile'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
@@ -37,6 +35,7 @@ const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
 const ForgotPage = lazy(() => import('src/pages/forgot-password'));
 const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
 const SettingPage = lazy(() => import('src/pages/setting'));
+const AllOrdersAdminPage = lazy(() => import('src/pages/all-orders'));
 
 // Loading fallback
 const renderFallback = (
@@ -136,6 +135,7 @@ function useRoutesByRole() {
       { path: 'press-release', element: <PressReleasePage /> },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
+      { path: 'all-orders', element: <AllOrdersAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
       { path: 'add-packages', element: <AddPackagesPage /> },
       { path: 'companies', element: <CompaniesPage /> },
