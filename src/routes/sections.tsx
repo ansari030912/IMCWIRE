@@ -90,7 +90,6 @@ function useRoutesByRole() {
     return [
       { element: <HomePage />, index: true },
       { path: 'add-press-release', element: <AddPressReleasePage /> },
-      { path: 'reports', element: <ReportsPage /> },
       { path: 'transactions', element: <TransactionPage /> },
       { path: 'press-release', element: <PressReleasePage /> },
       { path: 'faqs', element: <FaqsPage /> },
@@ -112,7 +111,6 @@ function useRoutesByRole() {
     return [
       { element: <HomePage />, index: true },
       { path: 'press-release', element: <PressReleasePage /> },
-      { path: 'reports', element: <ReportsPage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
       { path: 'packages', element: <ProductsPage /> },
@@ -133,7 +131,6 @@ function useRoutesByRole() {
     return [
       { element: <HomePage />, index: true },
       { path: 'press-release', element: <PressReleasePage /> },
-      { path: 'reports', element: <ReportsPage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
       { path: 'all-orders', element: <AllOrdersAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },

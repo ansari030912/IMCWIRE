@@ -24,6 +24,7 @@ import {
 import { DashboardContent } from 'src/layouts/dashboard';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
+// ... interfaces remain unchanged ...
 interface ICountry {
   name: string;
   translation: boolean;
@@ -125,7 +126,7 @@ export function AddCustomPlanView() {
   // --------------------------
   // 5) Multi-Step Wizard State
   // --------------------------
-  // Steps: 1: Plan Details, 2: Distribution, 3: PR Option
+  // Steps: 1: Plan Details, 2: Distribution, 3: PR Option (with discount)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // -- Step 1: Plan Details --
@@ -200,6 +201,7 @@ export function AddCustomPlanView() {
     { name: 'Sri Lanka' },
     { name: 'Kenya' },
   ];
+
   const [categoryToAdd, setCategoryToAdd] = useState('');
   const [countryToAdd, setCountryToAdd] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -240,14 +242,30 @@ export function AddCustomPlanView() {
 
   // -- Step 3: PR Option --
   // "IMCWIRE (Write & Publication)" adds $120; "Self Written" adds $0.
-  const [prOption, setPrOption] = useState<'imcwire' | 'self' | ''>('');
-  const imcwireCost = prOption === 'imcwire' ? 120 : 0;
+  const [prOption, setPrOption] = useState<'IMCWire Written' | 'Self-Written' | ''>('');
+  const imcwireCost = prOption === 'IMCWire Written' ? 120 : 0;
   const finalTotal = partialTotal + imcwireCost;
+
+  // ============================
+  // *** NEW DISCOUNT SECTION ***
+  // ============================
+  // New state for discount:
+  const [discountType, setDiscountType] = useState<'' | 'percentage' | 'dollar'>('');
+  // Initialize discountValue as an empty string instead of 0.
+  const [discountValue, setDiscountValue] = useState<string>('');
+  // Convert the discountValue string to a number for calculations.
+  const numericDiscountValue = parseFloat(discountValue) || 0;
+  const discountAmount =
+    discountType === 'percentage'
+      ? finalTotal * (numericDiscountValue / 100)
+      : discountType === 'dollar'
+        ? numericDiscountValue
+        : 0;
+  const finalTotalAfterDiscount = Math.max(finalTotal - discountAmount, 0);
 
   // --------------------------
   // 6) Navigation Handlers
   // --------------------------
-  // On Step 1, the Back button exits the wizard
   const handleNext = () => {
     if (currentStep === 1) {
       if (
@@ -296,6 +314,7 @@ export function AddCustomPlanView() {
       numberOfPR: Number(planDetails.numberOfPR),
       activate_plan: 1,
       type: 'custom-plan',
+      prType: prOption,
       orderType: 'Custom',
       targetCountries: selectedCountries.map((c, idx) => ({
         name: c.name.trim(),
@@ -307,7 +326,12 @@ export function AddCustomPlanView() {
         name: cat,
         price: idx === 0 ? 0 : 40,
       })),
-      total_price: Number(finalTotal.toFixed(2)),
+      // *** Include discount info in the payload ***
+      discountType,
+      // Send the numeric value for discountValue
+      discountValue: numericDiscountValue,
+      discountAmount: Number(discountAmount.toFixed(2)),
+      total_price: Number(finalTotalAfterDiscount.toFixed(2)),
       payment_status: 'unpaid',
       payment_method: 'Stripe',
       is_active: 1,
@@ -335,12 +359,15 @@ export function AddCustomPlanView() {
       setSelectedCategories([]);
       setSelectedCountries([]);
       setPrOption('');
+      // Also reset discount fields
+      setDiscountType('');
+      setDiscountValue('');
       setCurrentStep(1);
       setShowForm(false);
       fetchCustomOrders();
     } catch (error) {
-      console.error('Submit error:', error);
-      showSnackbar('Submission error. Please try again later.', 'error');
+      // console.error('Submit error:', error);
+      showSnackbar('All fields are required!', 'error');
     }
   };
 
@@ -350,7 +377,7 @@ export function AddCustomPlanView() {
   const timelineSteps = [
     { id: 1, name: 'Plan Details' },
     { id: 2, name: 'Distribution' },
-    { id: 3, name: 'PR Option' },
+    { id: 3, name: 'PR Option & Discount' },
   ];
   const renderTimeline = () => (
     <Box>
@@ -471,6 +498,7 @@ export function AddCustomPlanView() {
   // -- Step 2 Renderer: Distribution (Category & Country Section) --
   const renderStepTwo = () => (
     <div className="bg-white shadow-md rounded-lg p-6">
+      {/* (Categories and Countries selection UI remains unchanged) */}
       <Typography className="text-gray-800 font-bold mb-4">Industry Categories</Typography>
       <Typography className="text-sm text-gray-500 mb-6">
         IMCWIRE offers a hand-picked list of journalists for your initial industry category at no
@@ -627,7 +655,7 @@ export function AddCustomPlanView() {
     </div>
   );
 
-  // -- Step 3 Renderer: PR Option & Submission --
+  // -- Step 3 Renderer: PR Option & Discount Section --
   const renderStepThree = () => (
     <Card className="p-6 w-full">
       <Typography className="mb-4 font-semibold">Your Press Distribution</Typography>
@@ -637,9 +665,9 @@ export function AddCustomPlanView() {
       </Typography>
       {/* Write & Publication = $120 */}
       <div
-        onClick={() => setPrOption('imcwire')}
+        onClick={() => setPrOption('IMCWire Written')}
         className={`cursor-pointer mb-4 p-4 rounded shadow-sm ${
-          prOption === 'imcwire' ? 'bg-purple-800 text-white' : 'bg-gray-100 text-gray-800'
+          prOption === 'IMCWire Written' ? 'bg-purple-800 text-white' : 'bg-gray-100 text-gray-800'
         }`}
         style={{ transition: '0.2s' }}
       >
@@ -650,9 +678,9 @@ export function AddCustomPlanView() {
       </div>
       {/* Upload doc */}
       <div
-        onClick={() => setPrOption('self')}
+        onClick={() => setPrOption('Self-Written')}
         className={`cursor-pointer p-4 rounded shadow-sm ${
-          prOption === 'self' ? 'bg-purple-800 text-white' : 'bg-white text-gray-800 border'
+          prOption === 'Self-Written' ? 'bg-purple-800 text-white' : 'bg-white text-gray-800 border'
         }`}
         style={{ transition: '0.2s' }}
       >
@@ -661,8 +689,36 @@ export function AddCustomPlanView() {
           Upload your high-quality PR written in .doc or .docx
         </Typography>
       </div>
+
+      {/* **** NEW DISCOUNT UI **** */}
+      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        Apply Discount
+      </Typography>
+      <TextField
+        select
+        label="Discount Type"
+        value={discountType}
+        onChange={(e) => setDiscountType(e.target.value as '' | 'percentage' | 'dollar')}
+        fullWidth
+        sx={{ mb: 2 }}
+      >
+        <MenuItem value="">None</MenuItem>
+        <MenuItem value="percentage">Percentage (%)</MenuItem>
+        <MenuItem value="dollar">Dollar ($)</MenuItem>
+      </TextField>
+      {discountType && (
+        <TextField
+          label={`Discount Value (${discountType === 'percentage' ? '%' : '$'})`}
+          type="number"
+          value={discountValue}
+          onChange={(e) => setDiscountValue(e.target.value)}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+      )}
+
       <Typography variant="h6" sx={{ mt: 2, mb: 3 }}>
-        Final Total: ${finalTotal.toFixed(2)}
+        Final Total: ${finalTotalAfterDiscount.toFixed(2)}
       </Typography>
       <Box display="flex" justifyContent="space-between">
         <Button onClick={handleBack} variant="outlined" color="primary">
@@ -762,20 +818,6 @@ export function AddCustomPlanView() {
                                       {order.plan.numberOfPR} PR Articles
                                     </p>
                                   </li>
-                                  {/* <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      Download PDF:{' '}
-                                      <a
-                                        href={order.plan.pdfLink}
-                                        target="_blank"
-                                        className="text-blue-600 underline"
-                                        rel="noreferrer"
-                                      >
-                                        View
-                                      </a>
-                                    </p>
-                                  </li> */}
                                 </ul>
                               </div>
                               {/* Copy Invoice URL Button */}
@@ -869,9 +911,26 @@ export function AddCustomPlanView() {
                       +${imcwireCost}
                     </span>
                   </div>
-                  <div className="bg-white p-2 flex justify-between font-bold">
-                    <span className="text-gray-700 text-xl font-bold">Total:</span>
-                    <span className="text-purple-600 text-xl font-bold">${finalTotal}</span>
+                  {/* **** Discount line item (if any) **** */}
+                  {discountType && numericDiscountValue > 0 && (
+                    <div className="bg-white p-2 flex justify-between">
+                      <span className="text-gray-500 font-bold">
+                        Discount (
+                        {discountType === 'percentage'
+                          ? `${numericDiscountValue}%`
+                          : `$${numericDiscountValue}`}
+                        ):
+                      </span>
+                      <span className="font-bold text-green-500">
+                        - ${discountAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="bg-purple-900 p-2 flex justify-between font-bold">
+                    <span className="text-white text-xl font-bold">Total:</span>
+                    <span className="text-white text-xl font-bold">
+                      ${finalTotalAfterDiscount.toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </Card>

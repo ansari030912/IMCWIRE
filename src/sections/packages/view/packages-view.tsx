@@ -82,6 +82,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const [basePlanPrice, setBasePlanPrice] = useState(0);
+  const [planId, setPlanId] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -97,6 +98,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
         if (response.status === 200) {
           // Save user in cookies for 1 day
           setBasePlanPrice(Number(response.data.totalPlanPrice));
+          setPlanId(response?.data.id);
         }
       } catch (error) {
         setErrorMessage('Not Valid Plan. Please try again.');
@@ -276,7 +278,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
             'Content-Type': 'application/json',
           },
         });
-        setIpAddress(response.data.ip);
+        setIpAddress(response?.data.ip);
       } catch (error) {
         console.error('Error fetching IP:', error);
       }
@@ -409,7 +411,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
       const total_price = Number(finalTotal.toFixed(2));
 
       const payload = {
-        plan_id: id,
+        plan_id: planId,
         prType,
         pr_status: 'Pending',
         payment_method: paymentMethod,
@@ -417,7 +419,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
         industryCategories,
         total_price,
         payment_status: paymentStatus,
-        ip_adress: ipAddress,
+        ip_address: ipAddress,
       };
 
       // Make request
@@ -429,16 +431,12 @@ export function PackagesView({ id }: { id: string | undefined }) {
         },
       });
 
-      if (resp.data.message === 'PR submitted successfully') {
-        showSnackbar('PR submitted successfully! Redirecting...', 'success');
-        const { paymentUrl } = resp.data;
-        // Wait 3s
-        setTimeout(() => {
-          window.location.href = paymentUrl;
-        }, 3000);
-      } else {
-        showSnackbar('Failed to submit PR. Please try again.', 'error');
-      }
+      showSnackbar('PR submitted successfully! Redirecting...', 'success');
+      const { paymentUrl } = resp.data;
+      // Wait 3s
+      setTimeout(() => {
+        window.location.href = paymentUrl;
+      }, 3000);
     } catch (error) {
       console.error(error);
       showSnackbar('Checkout failed. Please try again.', 'error');
@@ -910,7 +908,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
           </button>
           <button
             onClick={handleCheckout}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer cursor-pointer"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
           >
             Checkout
           </button>

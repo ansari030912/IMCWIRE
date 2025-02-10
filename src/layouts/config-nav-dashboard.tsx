@@ -10,7 +10,7 @@ export const userNavData = [
     title: 'Dashboard',
     items: [
       { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
-      { title: 'Reports', path: '/reports', icon: icon('ic-report') },
+      // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/transactions', icon: icon('ic-trasaction') },
     ],
   },
