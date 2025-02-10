@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ReactNode } from 'react';
+
 import Cookies from 'js-cookie';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, useMemo, Suspense } from 'react';
 import { Outlet, Navigate, useRoutes } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+
 import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
@@ -36,7 +40,7 @@ const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
-const AllOrdersAdminPage  = lazy(() => import('src/pages/all-orders'));
+const AllOrdersAdminPage = lazy(() => import('src/pages/all-orders'));
 // Loading fallback
 const renderFallback = (
   <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">

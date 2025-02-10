@@ -1,6 +1,7 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
+
 import Cookies from 'js-cookie';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -13,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { useRouter, usePathname } from 'src/routes/hooks';
+
 import { _myAccount } from 'src/_mock';
 
 // ----------------------------------------------------------------------
