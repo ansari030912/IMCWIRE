@@ -49,7 +49,7 @@ export const adminNavData = [
       { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
-      { title: 'All Customers', path: '/users', icon: icon('ic-users') },
+      // { title: 'All Customers', path: '/users', icon: icon('ic-users') },
     ],
   },
   {
