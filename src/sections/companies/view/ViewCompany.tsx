@@ -189,11 +189,8 @@ const ViewCompany = () => {
                       <TableRow
                         key={company.id}
                         sx={{
-                          '&:last-child td, &:last-child th': {
-                            border: 0,
-                            backgroundColor: index % 2 === 0 ? 'white' : 'gray',
-                          },
-                        }}
+                            backgroundColor: index % 2 === 0 ? 'white' : '#F6F7F8',
+                          }}
                       >
                         <TableCell component="th" scope="row">
                           {company.id}

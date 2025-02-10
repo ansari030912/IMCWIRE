@@ -220,11 +220,14 @@ import { useState, useEffect } from 'react';
 
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import { Box, CircularProgress } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 import DahboardVideos from 'src/sections/dashboard-videos/dashboard-video';
+
 import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 import { AnalyticsCurrentVisits } from '../analytics-current-visits';
 import { AnalyticsConversionRates } from '../analytics-conversion-rates';
@@ -304,11 +307,22 @@ export function OverviewAnalyticsView() {
     }
   }, [token, role]);
 
-  // Calculate Completed PR's by summing Approved and Published.
-  const completedPRs = prData.Approved + prData.Published;
-
   if (loading) {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          bgcolor: 'rgba(255,255,255,0.5)',
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
