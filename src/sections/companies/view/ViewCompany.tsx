@@ -8,13 +8,11 @@ import {
   Alert,
   Paper,
   Table,
-  Button,
   Snackbar,
   TableRow,
   TableBody,
   TableCell,
   TableHead,
-  TextField,
   Typography,
   TableContainer,
   TablePagination,
@@ -41,25 +39,12 @@ interface Company {
   updated_at: string;
 }
 
-const CompaniesView = () => {
+const ViewCompany = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [newCompany, setNewCompany] = useState({
-    companyName: '',
-    address1: '',
-    address2: '',
-    contactName: '',
-    phone: '',
-    email: '',
-    country: '',
-    city: '',
-    state: '',
-    websiteUrl: '',
-  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -89,7 +74,7 @@ const CompaniesView = () => {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}/v1/company/list`, {
+      const response = await axios.get(`${BASE_URL}/v1/company/superadmin/all`, {
         headers: {
           'X-API-Key': X_API_KEY,
           Authorization: `Bearer ${token}`,
@@ -117,52 +102,6 @@ const CompaniesView = () => {
     setPage(0);
   };
 
-  const handleAddCompany = async () => {
-    try {
-      await axios.post(
-        `${BASE_URL}/v1/company/add`,
-        { ...newCompany },
-        {
-          headers: {
-            'X-API-Key': X_API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setSnackbar({
-        open: true,
-        message: 'Company added successfully!',
-        severity: 'success',
-      });
-      // Reset the form values
-      setNewCompany({
-        companyName: '',
-        address1: '',
-        address2: '',
-        contactName: '',
-        phone: '',
-        email: '',
-        country: '',
-        city: '',
-        state: '',
-        websiteUrl: '',
-      });
-      setShowForm(false);
-      fetchCompanies();
-    } catch (error: any) {
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to add company',
-        severity: 'error',
-      });
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewCompany({ ...newCompany, [name]: value });
-  };
-
   return (
     <Box sx={{ px: { xs: 2, md: 4 } }}>
       <Box sx={{ mb: 3 }}>
@@ -170,7 +109,7 @@ const CompaniesView = () => {
           Manage Companies
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Add or view company details below.
+          View company details below.
         </Typography>
       </Box>
 
@@ -185,124 +124,6 @@ const CompaniesView = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
-      {/* Top Bar - Add New Company Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Button
-          variant="contained"
-          color={showForm ? 'error' : 'primary'}
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Close Form' : 'Add New Company'}
-        </Button>
-      </Box>
-
-      {/* Add Company Form */}
-      {showForm && (
-        <Paper
-          elevation={3}
-          sx={{
-            mb: 4,
-            p: 3,
-            borderRadius: 2,
-            backgroundColor: '#f9f9f9',
-          }}
-        >
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Add New Company
-          </Typography>
-          <Box
-            component="form"
-            noValidate
-            autoComplete="off"
-            sx={{
-              display: 'grid',
-              gap: 2,
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            }}
-          >
-            <TextField
-              label="Company Name"
-              name="companyName"
-              value={newCompany.companyName}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Address 1"
-              name="address1"
-              value={newCompany.address1}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Address 2"
-              name="address2"
-              value={newCompany.address2}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Contact Name"
-              name="contactName"
-              value={newCompany.contactName}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Phone"
-              name="phone"
-              value={newCompany.phone}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Email"
-              name="email"
-              value={newCompany.email}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Country"
-              name="country"
-              value={newCompany.country}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="City"
-              name="city"
-              value={newCompany.city}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="State"
-              name="state"
-              value={newCompany.state}
-              onChange={handleInputChange}
-              fullWidth
-            />
-            <TextField
-              label="Website URL"
-              name="websiteUrl"
-              value={newCompany.websiteUrl}
-              onChange={handleInputChange}
-              fullWidth
-            />
-          </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleAddCompany}
-            sx={{ mt: 3 }}
-          >
-            Add Company
-          </Button>
-        </Paper>
-      )}
 
       {/* Loading Indicator */}
       {loading ? (
@@ -337,8 +158,7 @@ const CompaniesView = () => {
             No Companies Found
           </Typography>
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }} align="center">
-            It looks like you haven&apos;t added any company yet. Use the button above to add a new
-            company.
+            It looks like there are no companies to display.
           </Typography>
         </Box>
       ) : (
@@ -431,4 +251,4 @@ const CompaniesView = () => {
   );
 };
 
-export default CompaniesView;
+export default ViewCompany;

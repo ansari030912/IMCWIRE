@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 interface Transaction {
@@ -82,12 +85,16 @@ export function AdminTransaction() {
                       <td className="py-3 px-4">${transaction.amount}</td>
                       <td className="py-3 px-4">{transaction.currency}</td>
                       <td className="py-3 px-4">
-                        <span className={`inline-block py-1 px-2 text-white rounded-full ${transaction.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}>
+                        <span
+                          className={`inline-block py-1 px-2 text-white rounded-full ${transaction.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
+                        >
                           {transaction.payment_status}
                         </span>
                       </td>
                       <td className="py-3 px-4">{transaction.payment_method}</td>
-                      <td className="py-3 px-4">{new Date(transaction.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
