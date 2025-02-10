@@ -2,42 +2,42 @@ import type { SelectChangeEvent } from '@mui/material';
 
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
   Box,
-  Button,
   Card,
   Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControl,
   Grid,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
+  Alert,
   Paper,
-  Select,
-  Snackbar,
-  styled,
   Table,
+  Button,
+  Dialog,
+  Select,
+  styled,
+  Divider,
+  MenuItem,
+  Snackbar,
+  TableRow,
+  Accordion,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TablePagination,
-  TableRow,
   TextField,
+  IconButton,
+  InputLabel,
   Typography,
+  DialogTitle,
+  FormControl,
+  DialogActions,
+  DialogContent,
+  InputAdornment,
+  TableContainer,
+  TablePagination,
+  AccordionDetails,
+  AccordionSummary,
+  CircularProgress,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -150,16 +150,6 @@ interface Order {
   planRecords?: PlanRecord[];
   singlePRDetails?: SinglePRDetail[];
 }
-
-const StyledChip = styled(Chip)<{ bordercolor?: string }>(({ bordercolor }) => ({
-  borderRadius: '16px', // Rounded corners
-  borderWidth: '1.5px',
-  borderStyle: 'solid',
-  borderColor: bordercolor || '#9E9E9E', // Default border color if none provided
-  color: bordercolor || '#9E9E9E', // Text color matches border
-  backgroundColor: 'transparent', // Transparent background
-  fontWeight: 'bold',
-}));
 
 // ------------------ Helpers ------------------ //
 
@@ -873,13 +863,32 @@ const OrdersView: React.FC = () => {
   const fetchOrders = useCallback(async () => {
     if (!token) return;
     setLoadingOrders(true);
+
     try {
-      const response = await axios.get<Order[]>(`${BASE_URL}/v1/pr/user-order-list`, {
+      const userTokenString = Cookies.get('user');
+      let userRole = '';
+
+      if (userTokenString) {
+        try {
+          const userToken = JSON.parse(userTokenString);
+          userRole = userToken.role; // Assuming the role is stored in the user token
+        } catch (error) {
+          console.error('Error parsing user token:', error);
+        }
+      }
+
+      const endpoint =
+        userRole === 'admin' || userRole === 'super_admin'
+          ? `${BASE_URL}/v1/pr/superAdmin-list`
+          : `${BASE_URL}/v1/pr/user-order-list`;
+
+      const response = await axios.get<Order[]>(endpoint, {
         headers: {
           'x-api-key': X_API_KEY,
           Authorization: `Bearer ${token}`,
         },
       });
+
       setOrders(response.data);
     } catch (error: any) {
       console.error('Error fetching orders:', error);
@@ -981,8 +990,6 @@ const OrdersView: React.FC = () => {
             p: 5,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
         >
           <Iconify
