@@ -417,6 +417,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
         industryCategories,
         total_price,
         payment_status: paymentStatus,
+        ip_adress: ipAddress,
       };
 
       // Make request
