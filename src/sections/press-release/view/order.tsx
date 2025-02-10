@@ -1069,7 +1069,13 @@ const OrdersView: React.FC = () => {
                               {usedPRS} / {totalPRS}
                             </StyledTableCell>
                             <StyledTableCell align="center">
-                              <Button onClick={() => handleOpenDialog(order)}>Details</Button>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => handleOpenDialog(order)}
+                              >
+                                Details
+                              </Button>
                             </StyledTableCell>
                           </StyledTableRow>
                         </React.Fragment>
