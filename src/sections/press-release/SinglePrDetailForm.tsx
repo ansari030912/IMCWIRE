@@ -4,7 +4,7 @@ import type { SelectChangeEvent } from '@mui/material';
 
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
   Box,
@@ -28,7 +28,6 @@ import {
 } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
-// You can adjust these imports to match your project structure
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 import AddCompanyForm from './view/AddCompanyForm';
@@ -44,7 +43,6 @@ interface SinglePrDetailsFormProps {
   onSuccess?: () => void;
 }
 
-// Consolidated Company interface with all fields
 interface Company {
   id: number;
   companyName: string;
@@ -73,26 +71,19 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
   // Authentication & Data
   const [token, setToken] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
-
-  // Form Fields
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [url, setUrl] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>('');
-
-  // For file uploads (Self-Written)
   const [file, setFile] = useState<File | null>(null);
-
-  // Dialog / Feedback states
   const [openAddCompanyDialog, setOpenAddCompanyDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [submitting, setSubmitting] = useState(false);
 
-  /* ----------------------------------------------------------------
-     2.1) useEffect: Retrieve token from Cookies
-     ---------------------------------------------------------------- */
+  // Retrieve token from Cookies
   useEffect(() => {
     const userTokenString = Cookies.get('user');
     if (userTokenString) {
@@ -105,32 +96,30 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     }
   }, []);
 
-  /* ----------------------------------------------------------------
-     2.2) useEffect: Fetch companies from API
-     ---------------------------------------------------------------- */
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      if (!token) return;
-      setLoading(true);
-
-      try {
-        const response = await axios.get<Company[]>(`${BASE_URL}/v1/company/company-list`, {
-          headers: {
-            'x-api-key': X_API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setCompanies(response.data);
-      } catch (error) {
-        console.error('Failed to fetch companies', error);
-        showSnackbar('Failed to load companies!', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompanies();
+  // Define a reusable fetchCompanies function using useCallback
+  const fetchCompanies = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const response = await axios.get<Company[]>(`${BASE_URL}/v1/company/company-list`, {
+        headers: {
+          'x-api-key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCompanies(response.data);
+    } catch (error) {
+      console.error('Failed to fetch companies', error);
+      showSnackbar('Failed to load companies!', 'error');
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
+
+  // Call fetchCompanies on initial load (when token is available)
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   /* ----------------------------------------------------------------
      3) Handlers
@@ -143,6 +132,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
       setNewTag('');
     }
   };
+
   const handleDeleteTag = (tagToDelete: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
   };
@@ -163,7 +153,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     e.preventDefault();
     if (!token) return;
     setLoading(true);
-
     const apiUrl = `${BASE_URL}/v1/pr/submit-single-pr`;
     const headers = {
       'x-api-key': X_API_KEY,
@@ -175,13 +164,13 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
         // JSON body (IMCWire will create the PR from URL + tags)
         const data = {
           pr_id: orderId,
-          company_id: Number(selectedCompany), // Convert to number
+          company_id: Number(selectedCompany),
           url,
           tags,
         };
         await axios.post(apiUrl, data, { headers });
       } else {
-        // FormData if the user is uploading a PDF
+        // FormData for Self-Written (PDF upload)
         const formData = new FormData();
         formData.append('pr_id', orderId.toString());
         formData.append('company_id', selectedCompany);
@@ -190,12 +179,8 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
         }
         await axios.post(apiUrl, formData, { headers });
       }
-
       showSnackbar('PR details submitted successfully!', 'success');
-      if (onSuccess) {
-        onSuccess();
-      }
-      // (Optional) Clear fields after success
+      if (onSuccess) onSuccess();
       resetForm();
     } catch (error) {
       console.error('Error submitting PR details:', error);
@@ -205,44 +190,48 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     }
   };
 
-  // 3.5) Dialog for "Add Company"
+  // 3.5) Open/Close "Add Company" Dialog
   const handleOpenAddCompanyDialog = () => setOpenAddCompanyDialog(true);
   const handleCloseAddCompanyDialog = () => setOpenAddCompanyDialog(false);
 
-  /* ----------------------------------------------------------------
-     4) Add new Company from AddCompanyForm
-     ---------------------------------------------------------------- */
+  // 3.6) Add new Company from AddCompanyForm
   const handleAddCompany = async (
     newCompanyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>
   ) => {
+    console.log('Submitting company data:', newCompanyData);
+    if (!newCompanyData.companyName || newCompanyData.companyName.trim() === '') {
+      console.warn('Company name is empty. Aborting submission.');
+      return;
+    }
     if (!token) return;
+    if (submitting) return;
     setLoading(true);
-
+    setSubmitting(true);
     try {
-      const response = await axios.post(`${BASE_URL}/v1/company/add-company`, newCompanyData, {
+      const response = await axios.post(`${BASE_URL}/v1/company/add`, newCompanyData, {
         headers: {
           'x-api-key': X_API_KEY,
           Authorization: `Bearer ${token}`,
         },
       });
+      // Instead of just appending the new company to state,
+      // re-fetch the companies list to ensure the select field is fully up-to-date.
+      await fetchCompanies();
+      // Optionally, you can set the selected company to the newly added one:
       const addedCompany: Company = response.data;
-
-      setCompanies((prev) => [...prev, addedCompany]);
       setSelectedCompany(addedCompany.id.toString());
       handleCloseAddCompanyDialog();
-
       showSnackbar('Company added successfully!', 'success');
     } catch (error) {
       console.error('Failed to add company', error);
       showSnackbar('Failed to add new company!', 'error');
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  /* ----------------------------------------------------------------
-     5) Utility: Show snackbar & reset form
-     ---------------------------------------------------------------- */
+  // Utility functions
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
@@ -254,16 +243,14 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     setTags([]);
     setNewTag('');
     setFile(null);
-    // (Optionally) do not reset the selectedCompany if user might want to reuse
-    // setSelectedCompany("");
   };
 
   /* ----------------------------------------------------------------
-     6) Render
+     4) Render
      ---------------------------------------------------------------- */
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Loading overlay (optional) */}
+      {/* Loading overlay */}
       {loading && (
         <Box
           sx={{
@@ -279,9 +266,8 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
           <CircularProgress />
         </Box>
       )}
-
       <form onSubmit={handleSubmit}>
-        {/* If it is IMCWire Written, we ask for URL & tags */}
+        {/* PR Details: URL & Tags for IMCWire Written, PDF upload for Self-Written */}
         {prType === 'IMCWire Written' ? (
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -293,7 +279,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
                 placeholder="Enter the article URL"
               />
             </Grid>
-
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -312,7 +297,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
                 }}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
               />
-              {/* Tag chips */}
               <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {tags.map((tag) => (
                   <Chip
@@ -326,7 +310,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
             </Grid>
           </Grid>
         ) : (
-          /* If it is Self-Written, we ask for a PDF upload */
           <Box sx={{ mt: 2 }}>
             <TextField
               fullWidth
@@ -338,9 +321,8 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
             />
           </Box>
         )}
-
         {/* Company Selection */}
-        <Box sx={{ mt: 3, display: "flex", alignContent: "start", gap: 2 }}>
+        <Box sx={{ mt: 3, display: 'flex', alignContent: 'start', gap: 2 }}>
           <FormControl fullWidth>
             <InputLabel id="company-select-label">Company</InputLabel>
             <Select
@@ -353,7 +335,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
               <MenuItem value="" disabled>
                 Select a company
               </MenuItem>
-
               {companies.length > 0 ? (
                 companies.map((company) => (
                   <MenuItem key={company.id} value={company.id}>
@@ -365,18 +346,19 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
               )}
             </Select>
           </FormControl>
-
-          <Button variant="outlined" sx={{textWrap: "nowrap", px: 5}} onClick={handleOpenAddCompanyDialog}>
+          <Button
+            variant="outlined"
+            sx={{ textWrap: 'nowrap', px: 5 }}
+            onClick={handleOpenAddCompanyDialog}
+          >
             Add New Company
           </Button>
         </Box>
-
-        {/* Submit */}
+        {/* Submit PR Details */}
         <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
           Save PR Details
         </Button>
       </form>
-
       {/* Dialog: Add New Company */}
       <Dialog
         open={openAddCompanyDialog}
@@ -393,12 +375,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
           <Iconify icon="eva:close-fill" width={24} height={24} />
         </IconButton>
         <DialogContent>
-          {/* 
-            AddCompanyForm is your custom form to add a new Company.
-            It should accept an `onAddCompany` callback that returns
-            the new company data, e.g.:
-                onAddCompany={(newCompanyData) => handleAddCompany(newCompanyData)}
-          */}
           <AddCompanyForm
             onAddCompany={handleAddCompany}
             onCloseDialog={handleCloseAddCompanyDialog}
@@ -408,8 +384,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
           <Button onClick={handleCloseAddCompanyDialog}>Cancel</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for success/error feedback */}
+      {/* Snackbar for feedback */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
