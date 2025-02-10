@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/button-has-type */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -17,17 +18,13 @@ import {
   Checkbox,
   TextField,
   Typography,
-  MenuItem,
   FormControlLabel,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
-interface ICountry {
-  name: string;
-  translation: boolean;
-}
 
 interface ICustomOrder {
   orderId: string;

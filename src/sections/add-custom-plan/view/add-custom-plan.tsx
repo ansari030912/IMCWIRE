@@ -14,14 +14,13 @@ import {
   Alert,
   Button,
   Snackbar,
-  Checkbox,
+  MenuItem,
   TextField,
   Typography,
-  MenuItem,
-  FormControlLabel,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ... interfaces remain unchanged ...

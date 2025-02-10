@@ -1,11 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { IconButtonProps } from '@mui/material/IconButton';
 
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Popover from '@mui/material/Popover';
 import MenuList from '@mui/material/MenuList';
-import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 // ----------------------------------------------------------------------
