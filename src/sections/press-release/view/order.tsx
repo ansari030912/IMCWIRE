@@ -1,6 +1,4 @@
-import type {
-  SelectChangeEvent
-} from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -39,7 +37,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Typography
+  Typography,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -350,7 +348,13 @@ function SinglePRDetailsList({
             aria-controls={`panel-${index}-content`}
             id={`panel-${index}-header`}
           >
-            <Box display="flex" alignItems="center" width="95%" justifyContent="space-between">
+            <Box
+              display="flex"
+              alignItems="center"
+              width="95%"
+              justifyContent="space-between"
+              sx={{ marginTop: '1px', marginBottom: '1px' }}
+            >
               <Typography variant="subtitle1">Single PR #{detail.id}</Typography>
               <Chip
                 label={getSinglePrStatusChipProps(detail.status).label}
@@ -454,6 +458,7 @@ function SinglePRDetailsList({
                   {pdf.url && (
                     <Button
                       variant="contained"
+                      sx={{ textWrap: 'nowrap' }}
                       size="small"
                       href={`https://files.imcwire.com${pdf.url}`}
                       target="_blank"
@@ -499,7 +504,15 @@ function SinglePRDetailsList({
                 detail.reports.map((report: any) => (
                   <Box key={report.id} sx={{ mb: 2 }}>
                     <Typography variant="subtitle2">Report Title: {report.title}</Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        flexWrap: 'wrap',
+                        mt: 1,
+                        justifyContent: 'center',
+                      }}
+                    >
                       {report.excelFile && (
                         <Button
                           variant="contained"
@@ -1045,15 +1058,9 @@ const OrdersView: React.FC = () => {
                             <StyledTableCell>
                               {usedPRS} / {totalPRS}
                             </StyledTableCell>
-                            <StyledTableHeadCell align="center">
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleOpenDialog(order)}
-                              >
-                                Details
-                              </Button>
-                            </StyledTableHeadCell>
+                            <StyledTableCell align="center">
+                              <Button onClick={() => handleOpenDialog(order)}>Details</Button>
+                            </StyledTableCell>
                           </StyledTableRow>
                         </React.Fragment>
                       );
