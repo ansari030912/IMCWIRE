@@ -18,7 +18,7 @@ export const userNavData = [
     title: 'Press Releases',
     items: [
       { title: 'Press Release', path: '/press-release', icon: icon('ic-press') },
-      { title: 'Add Press Release', path: '/add-press-release', icon: icon('ic-addpress') },
+      // { title: 'Add Press Release', path: '/add-press-release', icon: icon('ic-addpress') },
     ],
   },
   {

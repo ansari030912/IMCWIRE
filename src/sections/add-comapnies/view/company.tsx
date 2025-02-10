@@ -1,23 +1,26 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/no-unstable-nested-components */
-import {
-  Alert,
-  Box,
-  Button,
-  Paper,
-  Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-} from '@mui/material';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Alert,
+  Paper,
+  Table,
+  Button,
+  Snackbar,
+  TableRow,
+  TableBody,
+  TableCell,
+  TableHead,
+  TextField,
+  Typography,
+  TableContainer,
+  TablePagination,
+  CircularProgress,
+} from '@mui/material';
+
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
@@ -41,6 +44,7 @@ const CompaniesView = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [newCompany, setNewCompany] = useState({
@@ -61,9 +65,9 @@ const CompaniesView = () => {
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   });
 
+  // Get the user token from cookies
   useEffect(() => {
     const userTokenString = Cookies.get('user');
-    console.log('User Token String:', userTokenString); // Debugging line
     if (userTokenString) {
       try {
         const userToken = JSON.parse(userTokenString);
@@ -73,27 +77,16 @@ const CompaniesView = () => {
       }
     }
   }, []);
-  // Type the event correctly
+
+  // Fetch companies once token is available
   useEffect(() => {
     if (token) {
       fetchCompanies();
     }
   }, [token]);
-  const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null, // MouseEvent for buttons in MUI pagination
-    newPage: number
-  ) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement> // Correct type for the input event
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   const fetchCompanies = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${BASE_URL}/v1/company/list`, {
         headers: {
@@ -101,12 +94,31 @@ const CompaniesView = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(response.data);
       setCompanies(response.data);
+      // Automatically show the add form if no companies found
+      setShowForm(response.data.length === 0);
     } catch (error) {
       console.error('Error fetching companies:', error);
-      setSnackbar({ open: true, message: 'Failed to fetch companies.', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch companies.',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChangePage = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const handleAddCompany = async () => {
@@ -126,6 +138,7 @@ const CompaniesView = () => {
         message: 'Company added successfully!',
         severity: 'success',
       });
+      // Reset the form values
       setNewCompany({
         companyName: '',
         address1: '',
@@ -140,7 +153,7 @@ const CompaniesView = () => {
       });
       setShowForm(false);
       fetchCompanies();
-    } catch (error) {
+    } catch (error: any) {
       setSnackbar({
         open: true,
         message: error.response?.data?.message || 'Failed to add company',
@@ -155,192 +168,272 @@ const CompaniesView = () => {
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="text-left mb-12 pl-2">
-        <h1 className="font-bold text-5xl text-purple-800 mb-6">Manage Companies</h1>
-        <p className="text-gray-700">Add or view company details.</p>
-      </div>
+    <Box sx={{ py: 4, px: { xs: 2, md: 4 } }}>
+      {/* Header Section */}
+      <Box
+        sx={{
+          mb: 4,
+          p: 3,
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Manage Companies
+        </Typography>
+        <Typography variant="subtitle1">
+          Add or view company details below.
+        </Typography>
+      </Box>
+
+      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+        <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
       </Snackbar>
 
-      <Box display="flex" alignItems="end" justifyContent="end" mb={5}>
+      {/* Top Bar - Add New Company Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
         <Button
           variant="contained"
-          color={showForm ? 'error' : 'inherit'}
+          color={showForm ? 'error' : 'primary'}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? 'Close Form' : 'Add New Company'}
         </Button>
       </Box>
 
+      {/* Add Company Form */}
       {showForm && (
-        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-100">
-          <TextField
-            className="bg-white rounded-lg"
+        <Paper
+          elevation={3}
+          sx={{
+            mb: 4,
+            p: 3,
+            borderRadius: 2,
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Add New Company
+          </Typography>
+          <Box
+            component="form"
+            noValidate
+            autoComplete="off"
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            }}
+          >
+            <TextField
+              label="Company Name"
+              name="companyName"
+              value={newCompany.companyName}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Address 1"
+              name="address1"
+              value={newCompany.address1}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Address 2"
+              name="address2"
+              value={newCompany.address2}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Contact Name"
+              name="contactName"
+              value={newCompany.contactName}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Phone"
+              name="phone"
+              value={newCompany.phone}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={newCompany.email}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Country"
+              name="country"
+              value={newCompany.country}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="City"
+              name="city"
+              value={newCompany.city}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="State"
+              name="state"
+              value={newCompany.state}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <TextField
+              label="Website URL"
+              name="websiteUrl"
+              value={newCompany.websiteUrl}
+              onChange={handleInputChange}
+              fullWidth
+            />
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
             fullWidth
-            label="Company Name"
-            name="companyName"
-            value={newCompany.companyName}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Address 1"
-            name="address1"
-            value={newCompany.address1}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Address 2"
-            name="address2"
-            value={newCompany.address2}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Contact Name"
-            name="contactName"
-            value={newCompany.contactName}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Phone"
-            name="phone"
-            value={newCompany.phone}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Email"
-            name="email"
-            value={newCompany.email}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Country"
-            name="country"
-            value={newCompany.country}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="City"
-            name="city"
-            value={newCompany.city}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="State"
-            name="state"
-            value={newCompany.state}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <TextField
-            className="bg-white rounded-lg"
-            fullWidth
-            label="Website URL"
-            name="websiteUrl"
-            value={newCompany.websiteUrl}
-            onChange={handleInputChange}
-          />
-          <br />
-          <br />
-          <Button variant="contained" color="primary" onClick={handleAddCompany} sx={{ mt: 2 }}>
+            onClick={handleAddCompany}
+            sx={{ mt: 3 }}
+          >
             Add Company
           </Button>
-        </div>
+        </Paper>
       )}
-      {companies.length <= 0 ? (
-        <Alert severity="info" sx={{ width: '100%', mt: 2 }}>
-          No companies available
-        </Alert>
+
+      {/* Loading Indicator */}
+      {loading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh',
+          }}
+        >
+          <CircularProgress size={60} />
+        </Box>
+      ) : companies.length === 0 ? (
+        // No Companies Found Message
+        <Box
+          sx={{
+            p: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Iconify
+            icon="material-symbols:inventory-2-outline"
+            width={64}
+            height={64}
+            color="#ccc"
+          />
+          <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
+            No Companies Found
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ mt: 1, color: 'text.secondary' }}
+            align="center"
+          >
+            It looks like you haven&apos;t added any company yet. Use the button above to
+            add a new company.
+          </Typography>
+        </Box>
       ) : (
-        <TableContainer sx={{ overflow: 'unset' }}>
-          <Scrollbar>
-            <Table sx={{ minWidth: 800 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Company Info</TableCell>
-                  <TableCell align="left">Contact Info</TableCell>
-                  <TableCell align="left">Contact Email</TableCell>
-                  <TableCell align="left">Address</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {companies.map((company) => (
-                  <TableRow
-                    key={company.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      <Box
-                        display="flex"
-                        flexDirection="column"
-                        sx={{ paddingLeft: 2, textWrap: 'nowrap' }}
-                      >
-                        <div className="text-purple-900 font-bold">{company.companyName}</div>
-                        <p className="text-blue-500 font-semibold text-xs">{company.websiteUrl}</p>
-                      </Box>
+        // Companies Table with Pagination
+        <Paper elevation={2} sx={{ borderRadius: 2 }}>
+          <TableContainer>
+            <Scrollbar>
+              <Table sx={{ minWidth: 800 }}>
+                <TableHead>
+                  <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>
+                      #
                     </TableCell>
-                    <TableCell align="left" sx={{ textWrap: 'nowrap' }}>
-                      <div>{company.contactName}</div>
-                      <div className="text-xs">{company.phone}</div>
+                    <TableCell sx={{ fontWeight: 'bold' }}>
+                      Company Info
                     </TableCell>
-                    <TableCell align="left">{company.email}</TableCell>
-                    <TableCell align="left">
-                      <Box display="flex" flexDirection="column" sx={{ paddingLeft: 2 }}>
-                        <div className="text-purple-900 font-bold">
-                          {`${company.address1}, ${company.address2}`}
-                        </div>
-                        <p className="text-blue-500 font-semibold text-xs">
-                          {`${company.city}, ${company.state}, ${company.country}`}
-                        </p>
-                      </Box>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Contact Info
                     </TableCell>
-                    {/* <TableCell align="left">
-                    
-                  </TableCell> */}
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Contact Email
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Address
+                    </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Scrollbar>
+                </TableHead>
+                <TableBody>
+                  {companies
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((company) => (
+                      <TableRow
+                        key={company.id}
+                        sx={{
+                          '&:last-child td, &:last-child th': { border: 0 },
+                        }}
+                      >
+                        <TableCell component="th" scope="row">
+                         {company.id}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          <Box>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: 600, color: 'primary.main' }}
+                            >
+                              {company.companyName}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {company.websiteUrl}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="body2">
+                            {company.contactName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {company.phone}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="body2">{company.email}</Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Box sx={{ pl: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {`${company.address1}, ${company.address2}`}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {`${company.city}, ${company.state}, ${company.country}`}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
@@ -350,9 +443,10 @@ const CompaniesView = () => {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-        </TableContainer>
+        </Paper>
       )}
-    </div>
+    </Box>
   );
 };
+
 export default CompaniesView;
