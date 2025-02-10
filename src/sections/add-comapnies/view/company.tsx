@@ -95,8 +95,6 @@ const CompaniesView = () => {
         },
       });
       setCompanies(response.data);
-      // Automatically show the add form if no companies found
-      setShowForm(response.data.length === 0);
     } catch (error) {
       console.error('Error fetching companies:', error);
       setSnackbar({
@@ -109,10 +107,7 @@ const CompaniesView = () => {
     }
   };
 
-  const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
+  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
   };
 
@@ -168,9 +163,9 @@ const CompaniesView = () => {
   };
 
   return (
-    <Box sx={{ py: 4, px: { xs: 2, md: 4 } }}>
+    <Box sx={{ px: { xs: 2, md: 4 } }}>
       {/* Header Section */}
-      <Box
+      {/* <Box
         sx={{
           mb: 4,
           p: 3,
@@ -181,6 +176,14 @@ const CompaniesView = () => {
           Manage Companies
         </Typography>
         <Typography variant="subtitle1">
+          Add or view company details below.
+        </Typography>
+      </Box> */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Manage Companies
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           Add or view company details below.
         </Typography>
       </Box>
@@ -347,13 +350,9 @@ const CompaniesView = () => {
           <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
             No Companies Found
           </Typography>
-          <Typography
-            variant="body2"
-            sx={{ mt: 1, color: 'text.secondary' }}
-            align="center"
-          >
-            It looks like you haven&apos;t added any company yet. Use the button above to
-            add a new company.
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }} align="center">
+            It looks like you haven&apos;t added any company yet. Use the button above to add a new
+            company.
           </Typography>
         </Box>
       ) : (
@@ -364,12 +363,8 @@ const CompaniesView = () => {
               <Table sx={{ minWidth: 800 }}>
                 <TableHead>
                   <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>
-                      #
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>
-                      Company Info
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Company Info</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="left">
                       Contact Info
                     </TableCell>
@@ -384,15 +379,18 @@ const CompaniesView = () => {
                 <TableBody>
                   {companies
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((company) => (
+                    .map((company, index) => (
                       <TableRow
                         key={company.id}
                         sx={{
-                          '&:last-child td, &:last-child th': { border: 0 },
+                          '&:last-child td, &:last-child th': {
+                            border: 0,
+                            backgroundColor: index % 2 === 0 ? 'white' : 'gray',
+                          },
                         }}
                       >
                         <TableCell component="th" scope="row">
-                         {company.id}
+                          {company.id}
                         </TableCell>
                         <TableCell component="th" scope="row">
                           <Box>
@@ -408,9 +406,7 @@ const CompaniesView = () => {
                           </Box>
                         </TableCell>
                         <TableCell align="left">
-                          <Typography variant="body2">
-                            {company.contactName}
-                          </Typography>
+                          <Typography variant="body2">{company.contactName}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                             {company.phone}
                           </Typography>
