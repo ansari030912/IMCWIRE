@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useState, useEffect } from 'react';
 
-import { Alert, Box, Button, Grid, IconButton, MenuItem, Snackbar, TextField } from '@mui/material';
+import { Box, Grid, Alert, Button, MenuItem, Snackbar, TextField } from '@mui/material';
 
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 

@@ -117,6 +117,7 @@ function useRoutesByRole() {
       // { path: 'press-release', element: <PressReleasePage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
       { path: 'users', element: <UserPage /> },
+      { path: 'all-orders', element: <AllOrdersAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
       { path: 'packages', element: <ProductsPage /> },
       { path: 'add-packages', element: <AddPackagesPage /> },
