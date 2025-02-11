@@ -175,7 +175,7 @@ export function Router() {
       ) : (
         <Navigate to="/login" replace />
       ),
-      children: routesByRole,
+      children: [{ index: true, element: <HomePage /> }],
     },
     {
       path: 'login',
