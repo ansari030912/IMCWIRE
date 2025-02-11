@@ -127,11 +127,17 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
 
   // 3.1) Tag Handlers
   const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags((prev) => [...prev, newTag.trim()]);
-      setNewTag('');
+    const trimmedTag = newTag.trim();
+    if (!trimmedTag) return;
+    if (tags.includes(trimmedTag)) return;
+    if (tags.length >= 4) {
+      showSnackbar('Maximum of 4 tags are allowed.', 'error');
+      return;
     }
+    setTags((prev) => [...prev, trimmedTag]);
+    setNewTag('');
   };
+  
 
   const handleDeleteTag = (tagToDelete: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
@@ -289,7 +295,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <Button type="button" onClick={handleAddTag} variant="contained" size="small">
+                      <Button type="button" onClick={handleAddTag} variant="contained" size="small"  disabled={tags.length >= 4}>
                         Add
                       </Button>
                     </InputAdornment>
