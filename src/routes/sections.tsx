@@ -84,7 +84,7 @@ function PrivateRoute({ children }: RouteGuardProps) {
 // Public Route Guard
 function PublicRoute({ children }: RouteGuardProps) {
   const auth = useAuth();
-  return auth.isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
+  return auth.isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 }
 
 // Get Routes Based on Role
@@ -164,7 +164,7 @@ export function Router() {
 
   return useRoutes([
     {
-      path: '/',
+      path: '/dashboard',
       element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>

@@ -9,7 +9,7 @@ export const userNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/transactions', icon: icon('ic-trasaction') },
     ],
@@ -46,7 +46,7 @@ export const adminNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
       { title: 'All Orders', path: '/all-orders', icon: icon('ic-orders') },
@@ -90,7 +90,7 @@ export const superAdminNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
       { title: 'All Customers', path: '/users', icon: icon('ic-users') },
