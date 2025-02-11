@@ -164,7 +164,7 @@ export function Router() {
 
   return useRoutes([
     {
-      path: 'https://dashboard.imcwire.com/',
+      path: '/',
       element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>
