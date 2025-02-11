@@ -388,7 +388,7 @@ const CompaniesView = () => {
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell align="left">
+                        <TableCell align="left" className="text-nowrap">
                           <Typography variant="body2">{company.contactName}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                             {company.phone}

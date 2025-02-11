@@ -279,7 +279,7 @@ export function OverviewAnalyticsView() {
       let url = '';
       if (role === 'user') {
         url = `${BASE_URL}/v1/pr/get-single-pr/user/statuses`;
-      } else if (role === 'super_admin') {
+      } else if (role === 'super_admin' || role === 'admin') {
         url = `${BASE_URL}/v1/pr/get-single-pr/superadmin/statuses`;
       } else {
         // Fallback endpoint if role is unknown

@@ -471,13 +471,16 @@ function SinglePRDetailsList({
                 </Typography>
                 {detail.tagsUrls && detail.tagsUrls.length > 0 ? (
                   <>
-                    {detail.tagsUrls.map((tag, tagIndex) => (
-                      <Typography key={tagIndex} variant="body2">
-                        Tag Name: {tag.name}
-                      </Typography>
-                    ))}
+                    <Typography variant="h6"> Tags: </Typography>
+                    <div className="flex gap-2">
+                      {detail.tagsUrls.map((tag, tagIndex) => (
+                        <Typography key={tagIndex} variant="body2">
+                          {tag.name},
+                        </Typography>
+                      ))}
+                    </div>
                     <Typography variant="body2" sx={{ mt: 1 }}>
-                      URL: {detail.tagsUrls[0].url}
+                      <strong> URL: </strong> {detail.tagsUrls[0].url}
                     </Typography>
                   </>
                 ) : (
@@ -641,11 +644,17 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
   }, [token]);
 
   const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags((prev) => [...prev, newTag.trim()]);
-      setNewTag('');
+    const trimmedTag = newTag.trim();
+    if (!trimmedTag) return;
+    if (tags.includes(trimmedTag)) return;
+    if (tags.length >= 4) {
+      showSnackbar('Maximum of 4 tags are allowed.', 'error');
+      return;
     }
+    setTags((prev) => [...prev, trimmedTag]);
+    setNewTag('');
   };
+  
 
   const handleDeleteTag = (tagToDelete: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
@@ -1066,7 +1075,13 @@ const OrdersView: React.FC = () => {
                               {usedPRS} / {totalPRS}
                             </StyledTableCell>
                             <StyledTableCell align="center">
-                              <Button onClick={() => handleOpenDialog(order)}>Details</Button>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => handleOpenDialog(order)}
+                              >
+                                Details
+                              </Button>
                             </StyledTableCell>
                           </StyledTableRow>
                         </React.Fragment>
@@ -1115,6 +1130,7 @@ const OrdersView: React.FC = () => {
                   : null;
               const usedPRS = planRecord ? planRecord.used_prs : 0;
               const totalPRS = planRecord ? planRecord.total_prs : 0;
+              console.log(selectedOrder.payment_status);
               return (
                 <>
                   <Typography variant="h6" gutterBottom>
@@ -1151,26 +1167,26 @@ const OrdersView: React.FC = () => {
                   ) : (
                     <Typography>No Single PR Details</Typography>
                   )}
-                  {selectedOrder.payment_status?.toLowerCase() === 'paid' ||
-                    (selectedOrder.payment_status?.toLowerCase() === 'self-paid' &&
-                      selectedOrder.pr_status?.toLowerCase() === 'approved' &&
-                      planRecord &&
-                      usedPRS < totalPRS && (
-                        <>
-                          <Divider sx={{ my: 2 }} />
-                          <Typography variant="h6" gutterBottom>
-                            Add Single PR
-                          </Typography>
-                          <Box sx={{ mt: 1 }}>
-                            <SinglePrDetailsForm
-                              key={formKey}
-                              orderId={selectedOrder.id}
-                              prType={selectedOrder.prType as 'IMCWire Written' | 'Self-Written'}
-                              onSuccess={handleSinglePrSuccess}
-                            />
-                          </Box>
-                        </>
-                      ))}
+                  {(selectedOrder.payment_status?.toLowerCase().trim() === 'paid' ||
+                    selectedOrder.payment_status?.toLowerCase().trim() === 'self-paid') &&
+                    selectedOrder.pr_status?.toLowerCase().trim() === 'approved' &&
+                    planRecord &&
+                    usedPRS < totalPRS && (
+                      <>
+                        <Divider sx={{ my: 2 }} />
+                        <Typography variant="h6" gutterBottom>
+                          Add Single PR
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <SinglePrDetailsForm
+                            key={formKey}
+                            orderId={selectedOrder.id}
+                            prType={selectedOrder.prType as 'IMCWire Written' | 'Self-Written'}
+                            onSuccess={handleSinglePrSuccess}
+                          />
+                        </Box>
+                      </>
+                    )}
                 </>
               );
             })()}
