@@ -52,10 +52,10 @@ export const adminNavData = [
       // { title: 'All Customers', path: '/users', icon: icon('ic-users') },
     ],
   },
-  {
-    title: 'Press Releases',
-    items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
-  },
+  // {
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
+  // },
   {
     title: 'Companies',
     items: [
@@ -96,10 +96,10 @@ export const superAdminNavData = [
       { title: 'All Orders', path: '/all-orders', icon: icon('ic-orders') },
     ],
   },
-  {
-    title: 'Press Releases',
-    items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
-  },
+  // {
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
+  // },
   {
     title: 'Companies',
     items: [

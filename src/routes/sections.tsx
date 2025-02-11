@@ -114,7 +114,7 @@ function useRoutesByRole() {
   if (auth.isAdmin) {
     return [
       { element: <HomePage />, index: true },
-      { path: 'press-release', element: <PressReleasePage /> },
+      // { path: 'press-release', element: <PressReleasePage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
       { path: 'users', element: <UserPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
@@ -135,7 +135,7 @@ function useRoutesByRole() {
   if (auth.isSuperAdmin) {
     return [
       { element: <HomePage />, index: true },
-      { path: 'press-release', element: <PressReleasePage /> },
+      // { path: 'press-release', element: <PressReleasePage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
       { path: 'all-orders', element: <AllOrdersAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
