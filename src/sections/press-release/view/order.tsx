@@ -619,7 +619,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
   const [existingFileName, setExistingFileName] = useState<string | null>(
     prDetail.pdfFile && prDetail.pdfFile.length > 0 ? prDetail.pdfFile[0].pdf_file : null
   );
-  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(
+  const [existingFileUrl] = useState<string | null>(
     prDetail.pdfFile && prDetail.pdfFile.length > 0
       ? `https://files.imcwire.com${prDetail.pdfFile[0].url}`
       : null
@@ -1092,6 +1092,7 @@ const OrdersView: React.FC = () => {
             p: 5,
             display: 'flex',
             flexDirection: 'column',
+            alignItems: "center"
           }}
         >
           <Iconify

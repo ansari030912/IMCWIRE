@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { Iconify } from 'src/components/iconify';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 interface Transaction {
@@ -61,6 +62,34 @@ export function UserTransaction() {
           <div className="p-6 mb-6 bg-white shadow rounded overflow-x-auto">
             {loading ? (
               <p>Loading transactions...</p>
+            ) : transactions.length === 0 ? (
+              <Box
+                sx={{
+                  p: 5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <Iconify
+                  icon="material-symbols:inventory-2-outline"
+                  width={64}
+                  height={64}
+                  color="#ccc"
+                />
+                <Typography variant="h6" color="textSecondary" sx={{ mt: 2 }}>
+                  No Transactions Found
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  It appears that you haven&apos;t made any transactions yet. To get started, please
+                  visit our{' '}
+                  <a href="/plans" className="text-blue-500 underline hover:text-blue-700">
+                    Plans page
+                  </a>{' '}
+                  to explore our offerings and make a purchase.
+                </Typography>
+              </Box>
             ) : (
               <table className="table-auto w-full">
                 <thead>
@@ -85,12 +114,16 @@ export function UserTransaction() {
                       <td className="py-3 px-4">${transaction.amount}</td>
                       <td className="py-3 px-4">{transaction.currency}</td>
                       <td className="py-3 px-4">
-                        <span className={`inline-block py-1 px-2 text-white rounded-full ${transaction.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}>
+                        <span
+                          className={`inline-block py-1 px-2 text-white rounded-full ${transaction.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
+                        >
                           {transaction.payment_status}
                         </span>
                       </td>
                       <td className="py-3 px-4">{transaction.payment_method}</td>
-                      <td className="py-3 px-4">{new Date(transaction.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

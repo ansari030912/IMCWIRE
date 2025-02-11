@@ -49,13 +49,14 @@ export const adminNavData = [
       { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
       // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
       { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
+      { title: 'All Orders', path: '/all-orders', icon: icon('ic-orders') },
       // { title: 'All Customers', path: '/users', icon: icon('ic-users') },
     ],
   },
-  {
-    title: 'Press Releases',
-    items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
-  },
+  // {
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
+  // },
   {
     title: 'Companies',
     items: [
@@ -96,10 +97,10 @@ export const superAdminNavData = [
       { title: 'All Orders', path: '/all-orders', icon: icon('ic-orders') },
     ],
   },
-  {
-    title: 'Press Releases',
-    items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
-  },
+  // {
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
+  // },
   {
     title: 'Companies',
     items: [
