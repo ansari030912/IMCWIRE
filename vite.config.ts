@@ -38,7 +38,7 @@ export default defineConfig({
     port: PORT,
     host: true,
     strictPort: true, // Ensures Vite binds strictly to PORT
-    allowedHosts: ['*', 'dumpscorner.com'], // Allow all hosts + specific one
+    allowedHosts: ['*', 'dashboard.imcwire.com'], // Allow all hosts + specific one
   },
   preview: {
     port: PORT,
