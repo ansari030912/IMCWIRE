@@ -598,7 +598,9 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
   const [url, setUrl] = useState<string>(
     prDetail.tagsUrls && prDetail.tagsUrls.length > 0 ? prDetail.tagsUrls[0].url : ''
   );
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(
+    prDetail.tagsUrls ? prDetail.tagsUrls.map(tag => tag.name) : []
+  );  
   const [newTag, setNewTag] = useState<string>('');
   // For Self-Written, allow PDF file update
   const [file, setFile] = useState<File | null>(null);
@@ -675,7 +677,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
     setLoading(true);
 
     // Update endpoint (adjust as needed)
-    const apiUrl = `${BASE_URL}/v1/pr/update-single-pr`;
+    const apiUrl = `${BASE_URL}/v1/pr/update-single-pr/${prDetail.id}`;
     const headers = {
       'x-api-key': X_API_KEY,
       Authorization: `Bearer ${token}`,
@@ -685,6 +687,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
       if (prDetail.pr_type === 'IMCWire Written') {
         // For IMCWire Written, send JSON with URL and tags.
         const data = {
+          pr_id: prDetail.pr_id,
           single_pr_id: prDetail.id,
           company_id: Number(selectedCompany),
           url,
@@ -694,7 +697,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
       } else {
         // For Self-Written, use FormData (PDF upload)
         const formData = new FormData();
-        formData.append('single_pr_id', prDetail.id.toString());
+        formData.append('pr_id', prDetail.pr_id.toString());
         formData.append('company_id', selectedCompany);
         if (file) {
           formData.append('pdf', file);
