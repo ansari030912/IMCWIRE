@@ -31,6 +31,7 @@ interface Company {
   contactName: string;
   phone: string;
   email: string;
+  user_email: string;
   country: string;
   city: string;
   state: string;
@@ -170,6 +171,7 @@ const ViewCompany = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold' }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>User Email</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Company Info</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="left">
                       Contact Info
@@ -194,6 +196,9 @@ const ViewCompany = () => {
                       >
                         <TableCell component="th" scope="row">
                           {company.id}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {company.user_email}
                         </TableCell>
                         <TableCell component="th" scope="row">
                           <Box>

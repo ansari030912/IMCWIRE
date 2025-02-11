@@ -620,7 +620,9 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
     prDetail.pdfFile && prDetail.pdfFile.length > 0 ? prDetail.pdfFile[0].pdf_file : null
   );
   const [existingFileUrl, setExistingFileUrl] = useState<string | null>(
-    prDetail.pdfFile && prDetail.pdfFile.length > 0 ? `https://files.imcwire.com${prDetail.pdfFile[0].url}` : null
+    prDetail.pdfFile && prDetail.pdfFile.length > 0
+      ? `https://files.imcwire.com${prDetail.pdfFile[0].url}`
+      : null
   );
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -639,7 +641,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
       }
     }
   }, []);
-  
+
   // Fetch companies (same as in the add form)
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -690,7 +692,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
     // Show the selected file name instead of existing file name
     if (selectedFile) {
       setExistingFileName(selectedFile.name);
-      // setExistingFileUrl(`https://files.imcwire.com${selectedFile.url}`)
+      // setExistingFileUrl(`https://files.imcwire.com${selectedFile.}`)
     }
   };
 
@@ -804,82 +806,81 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
             </Grid>
           </Grid>
         ) : (
-          <Box 
-          sx={{ 
-            mt: 2, 
-            p: 2, 
-            border: '1px solid', 
-            borderColor: 'grey.300', 
-            borderRadius: 2, 
-            backgroundColor: 'grey.50'
-          }}
-        >
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-            Previously Uploaded File
-          </Typography>
-          
-          {existingFileName ? (
-            <Box 
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: 1,
-                backgroundColor: 'grey.100',
-                borderRadius: 1
-              }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                {existingFileName}
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Chip label="Existing File" color="info" size="small" />
-                {existingFileUrl && (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color="primary"
-                    href={existingFileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    View File
-                  </Button>
-                )}
-              </Box>
-            </Box>
-          ) : (
-            <Typography variant="body2" sx={{ color: 'gray', fontStyle: 'italic' }}>
-              No file uploaded
-            </Typography>
-          )}
-        
-          <Box sx={{ mt: 2 }}>
+          <Box
+            sx={{
+              mt: 2,
+              p: 2,
+              border: '1px solid',
+              borderColor: 'grey.300',
+              borderRadius: 2,
+              backgroundColor: 'grey.50',
+            }}
+          >
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-              Upload New File
+              Previously Uploaded File
             </Typography>
-            <Button
-              variant="contained"
-              component="label"
-              fullWidth
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                py: 1.5,
-                bgcolor: 'primary.main',
-                '&:hover': { bgcolor: 'primary.dark' },
-              }}
-            >
-              Choose File
-              <input type="file" hidden onChange={handleFileChange} />
-            </Button>
+
+            {existingFileName ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1,
+                  backgroundColor: 'grey.100',
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {existingFileName}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip label="Existing File" color="info" size="small" />
+                  {existingFileUrl && (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="primary"
+                      href={existingFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      View File
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            ) : (
+              <Typography variant="body2" sx={{ color: 'gray', fontStyle: 'italic' }}>
+                No file uploaded
+              </Typography>
+            )}
+
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                Upload New File
+              </Typography>
+              <Button
+                variant="contained"
+                component="label"
+                fullWidth
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  py: 1.5,
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                }}
+              >
+                Choose File
+                <input type="file" hidden onChange={handleFileChange} />
+              </Button>
+            </Box>
           </Box>
-        </Box>
-        
         )}
 
         {/* Company Selection */}
