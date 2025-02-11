@@ -472,14 +472,26 @@ function SinglePRDetailsList({
                 {detail.tagsUrls && detail.tagsUrls.length > 0 ? (
                   <>
                     <Typography variant="h6"> Tags: </Typography>
-                    <div className="flex gap-2">
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, marginTop: 1 }}>
                       {detail.tagsUrls.map((tag, tagIndex) => (
-                        <Typography key={tagIndex} variant="body2">
-                          {tag.name},
-                        </Typography>
+                        <Chip
+                          key={tagIndex}
+                          label={tag.name}
+                          variant="outlined"
+                          sx={{
+                            borderRadius: '16px',
+                            borderColor: 'primary.main',
+                            color: 'primary.main',
+                            fontWeight: 'bold',
+                            paddingX: 1.5,
+                            paddingY: 0.5,
+                            fontSize: '14px',
+                          }}
+                        />
                       ))}
-                    </div>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
+                    </Box>
+
+                    <Typography variant="body2" sx={{ mt: 2 }}>
                       <strong> URL: </strong> {detail.tagsUrls[0].url}
                     </Typography>
                   </>
@@ -599,11 +611,17 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
     prDetail.tagsUrls && prDetail.tagsUrls.length > 0 ? prDetail.tagsUrls[0].url : ''
   );
   const [tags, setTags] = useState<string[]>(
-    prDetail.tagsUrls ? prDetail.tagsUrls.map(tag => tag.name) : []
-  );  
+    prDetail.tagsUrls ? prDetail.tagsUrls.map((tag) => tag.name) : []
+  );
   const [newTag, setNewTag] = useState<string>('');
   // For Self-Written, allow PDF file update
   const [file, setFile] = useState<File | null>(null);
+  const [existingFileName, setExistingFileName] = useState<string | null>(
+    prDetail.pdfFile && prDetail.pdfFile.length > 0 ? prDetail.pdfFile[0].pdf_file : null
+  );
+  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(
+    prDetail.pdfFile && prDetail.pdfFile.length > 0 ? `https://files.imcwire.com${prDetail.pdfFile[0].url}` : null
+  );
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -621,7 +639,7 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
       }
     }
   }, []);
-
+  
   // Fetch companies (same as in the add form)
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -656,7 +674,6 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
     setTags((prev) => [...prev, trimmedTag]);
     setNewTag('');
   };
-  
 
   const handleDeleteTag = (tagToDelete: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
@@ -669,6 +686,12 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
     setFile(selectedFile);
+
+    // Show the selected file name instead of existing file name
+    if (selectedFile) {
+      setExistingFileName(selectedFile.name);
+      // setExistingFileUrl(`https://files.imcwire.com${selectedFile.url}`)
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -781,16 +804,82 @@ const UpdateSinglePrDetailsForm: React.FC<UpdateSinglePrDetailsFormProps> = ({
             </Grid>
           </Grid>
         ) : (
+          <Box 
+          sx={{ 
+            mt: 2, 
+            p: 2, 
+            border: '1px solid', 
+            borderColor: 'grey.300', 
+            borderRadius: 2, 
+            backgroundColor: 'grey.50'
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+            Previously Uploaded File
+          </Typography>
+          
+          {existingFileName ? (
+            <Box 
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1,
+                backgroundColor: 'grey.100',
+                borderRadius: 1
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {existingFileName}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Chip label="Existing File" color="info" size="small" />
+                {existingFileUrl && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    href={existingFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    View File
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          ) : (
+            <Typography variant="body2" sx={{ color: 'gray', fontStyle: 'italic' }}>
+              No file uploaded
+            </Typography>
+          )}
+        
           <Box sx={{ mt: 2 }}>
-            <TextField
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+              Upload New File
+            </Typography>
+            <Button
+              variant="contained"
+              component="label"
               fullWidth
-              type="file"
-              label="Upload PDF"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              onChange={handleFileChange}
-            />
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                py: 1.5,
+                bgcolor: 'primary.main',
+                '&:hover': { bgcolor: 'primary.dark' },
+              }}
+            >
+              Choose File
+              <input type="file" hidden onChange={handleFileChange} />
+            </Button>
           </Box>
+        </Box>
+        
         )}
 
         {/* Company Selection */}
