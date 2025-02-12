@@ -107,7 +107,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                     // },
                     {
                       label: 'Settings',
-                      href: '/setting',
+                      href: '/dashboard/setting',
                       icon: <Iconify width={22} icon="solar:settings-bold-duotone" />,
                     },
                   ]}
