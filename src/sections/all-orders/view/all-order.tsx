@@ -760,15 +760,8 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
       setTags([]);
       setNewTag('');
       setPdf(null);
-<<<<<<< HEAD
       setContactName('');
       setPhone('');
-
-      // Notify parent if needed and refresh the page
-=======
-
-      // Notify parent if needed
->>>>>>> 5cce0f821cc5b4705f31d53e87a47a1518b20af9
       if (onSubmissionSuccess) {
         onSubmissionSuccess(null);
         router.refresh();
