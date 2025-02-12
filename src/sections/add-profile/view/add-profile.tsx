@@ -109,16 +109,12 @@ const ProfilePage = () => {
   const handleSubmitProfile = async () => {
     setLoading(true);
     try {
-      await axios.post(
-        `${BASE_URL}/v1/account/profile/add`,
-        profileData,
-        {
-          headers: {
-            'X-API-Key': X_API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post(`${BASE_URL}/v1/account/profile/add`, profileData, {
+        headers: {
+          'X-API-Key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setSnackbar({
         open: true,
         message: 'Profile created successfully!',
@@ -166,12 +162,7 @@ const ProfilePage = () => {
           <Typography variant="body1" align="center" sx={{ mb: 3 }}>
             Please fill in your profile details below
           </Typography>
-          <Box
-            component="form"
-            noValidate
-            autoComplete="off"
-            className="grid md:grid-cols-2 gap-5"
-          >
+          <Box component="form" noValidate autoComplete="off" className="grid md:grid-cols-2 gap-5">
             <TextField
               label="Full Name"
               name="full_name"
@@ -246,21 +237,21 @@ const ProfilePage = () => {
               }}
             />
           </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmitProfile}
-              disabled={loading}
-              fullWidth
-              sx={{
-                mt: 3,
-                py: 1.5,
-                fontSize: '1rem',
-                textTransform: 'none',
-              }}
-            >
-              {loading ? 'Submitting...' : 'Create Profile'}
-            </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmitProfile}
+            disabled={loading}
+            fullWidth
+            sx={{
+              mt: 3,
+              py: 1.5,
+              fontSize: '1rem',
+              textTransform: 'none',
+            }}
+          >
+            {loading ? 'Submitting...' : 'Create Profile'}
+          </Button>
         </Paper>
       )}
 
@@ -297,9 +288,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:account" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Full Name</Typography>
-                <Typography variant="body2">
-                  {existingProfile.full_name || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.full_name || 'N/A'}</Typography>
               </Box>
             </Grid>
             <Grid
@@ -316,9 +305,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:phone" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Phone Number</Typography>
-                <Typography variant="body2">
-                  {existingProfile.phone_number || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.phone_number || 'N/A'}</Typography>
               </Box>
             </Grid>
 
@@ -337,9 +324,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:home-outline" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Street Address</Typography>
-                <Typography variant="body2">
-                  {existingProfile.street_address || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.street_address || 'N/A'}</Typography>
               </Box>
             </Grid>
             <Grid
@@ -356,9 +341,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:city" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">City</Typography>
-                <Typography variant="body2">
-                  {existingProfile.city || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.city || 'N/A'}</Typography>
               </Box>
             </Grid>
 
@@ -377,9 +360,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:earth" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Country</Typography>
-                <Typography variant="body2">
-                  {existingProfile.country || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.country || 'N/A'}</Typography>
               </Box>
             </Grid>
             <Grid
@@ -396,9 +377,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:mailbox-open-up-outline" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Zip Code</Typography>
-                <Typography variant="body2">
-                  {existingProfile.zip_code || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.zip_code || 'N/A'}</Typography>
               </Box>
             </Grid>
 
@@ -417,9 +396,7 @@ const ProfilePage = () => {
               <Iconify icon="mdi:gender-male-female" width={30} color="#55427A" />
               <Box ml={1}>
                 <Typography variant="subtitle2">Gender</Typography>
-                <Typography variant="body2">
-                  {existingProfile.gender || 'N/A'}
-                </Typography>
+                <Typography variant="body2">{existingProfile.gender || 'N/A'}</Typography>
               </Box>
             </Grid>
             <Grid
