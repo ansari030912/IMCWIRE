@@ -34,6 +34,7 @@ const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
 const ForgotPage = lazy(() => import('src/pages/forgot-password'));
 
 const SettingPage = lazy(() => import('src/pages/setting'));
+const ProfilePage = lazy(() => import('src/pages/profile'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
 const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
@@ -105,6 +106,7 @@ function useRoutesByRole() {
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'plans', element: <PlansPage /> },
       { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
@@ -127,6 +129,7 @@ function useRoutesByRole() {
       { path: 'add-videos', element: <AddVideosPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
       { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
@@ -148,6 +151,7 @@ function useRoutesByRole() {
       { path: 'add-videos', element: <AddVideosPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
       { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       { path: 'custom-order', element: <GenerateCustomOrderPage /> },
       {
         path: 'custom-invoice/:id',
