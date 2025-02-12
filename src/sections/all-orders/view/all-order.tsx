@@ -33,7 +33,7 @@ import {
   TableContainer,
   TablePagination,
   AccordionDetails,
-  AccordionSummary,
+  InputAdornment,
 } from '@mui/material';
 
 import { useRouter } from 'src/routes/hooks';
@@ -643,10 +643,14 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
   const [stateField, setStateField] = useState('');
   const [country, setCountry] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [contactName, setContactName] = useState(''); // New field for Contact Name
+  const [phone, setPhone] = useState(''); // New field for Phone
 
   // ----- IMCWire Written Specific Fields -----
   const [url, setUrl] = useState('');
-  const [tags, setTags] = useState('');
+  // Instead of a single string, we'll store tags as an array.
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
 
   // ----- Self-Written Specific Field -----
   const [pdf, setPdf] = useState<File | null>(null);
@@ -658,10 +662,24 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     'success' | 'error' | 'info' | 'warning'
   >('success');
+
   const router = useRouter();
+
   const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setSnackbarOpen(false);
+  };
+
+  // ----- Tag Handling Functions -----
+  const handleAddTag = () => {
+    if (newTag.trim() !== '' && tags.length < 4) {
+      setTags((prev) => [...prev, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const handleDeleteTag = (tagToDelete: string) => {
+    setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
   };
 
   // ----- Form Submission Handler -----
@@ -675,14 +693,11 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
       const { token } = JSON.parse(decodeURIComponent(userCookie));
 
       if (order.prType === 'IMCWire Written') {
-        // Build the JSON payload
+        // Build the JSON payload including the new fields and tags array
         const payload = {
           pr_id: order.id, // Adjust if you use another field as the identifier
           url,
-          tags: tags
-            .split(',')
-            .map((tag: string) => tag.trim())
-            .filter((tag: string) => tag !== ''),
+          tags, // Now an array of strings
           companyName,
           email,
           address1,
@@ -691,6 +706,8 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
           state: stateField,
           country,
           websiteUrl,
+          contactName, // New field
+          phone, // New field
         };
 
         await axios.post(submitUrl, payload, {
@@ -700,7 +717,7 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
           },
         });
       } else if (order.prType === 'Self-Written') {
-        // Build the FormData payload (omit url and tags, include pdf)
+        // Build the FormData payload including the new fields
         const formData = new FormData();
         formData.append('pr_id', order.id);
         formData.append('companyName', companyName);
@@ -711,6 +728,8 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
         formData.append('state', stateField);
         formData.append('country', country);
         formData.append('websiteUrl', websiteUrl);
+        formData.append('contactName', contactName); // New field
+        formData.append('phone', phone); // New field
         if (pdf) {
           formData.append('pdf', pdf);
         }
@@ -727,6 +746,7 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
       setSnackbarMessage('Single PR submitted successfully.');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
+
       // Optionally, clear the form fields:
       setCompanyName('');
       setEmail('');
@@ -737,14 +757,17 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
       setCountry('');
       setWebsiteUrl('');
       setUrl('');
-      setTags('');
+      setTags([]);
+      setNewTag('');
       setPdf(null);
-      
-      // Notify parent if needed
-      if (onSubmissionSuccess){ 
-                onSubmissionSuccess(null)
-                router.refresh()
-              }
+      setContactName('');
+      setPhone('');
+
+      // Notify parent if needed and refresh the page
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess(null);
+        router.refresh();
+      }
     } catch (error) {
       console.error('Error submitting single PR:', error);
       setSnackbarMessage('Failed to submit single PR.');
@@ -758,9 +781,7 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
   return (
     <>
       <Accordion>
-        {/* <AccordionSummary expandIcon={<Iconify icon="material-symbols:expand-more" width={24} />}>
-          <Typography>Add Single PR</Typography>
-        </AccordionSummary> */}
+        {/* The AccordionSummary is omitted so that the form is always open when rendered */}
         <AccordionDetails>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
@@ -779,6 +800,25 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
                   label="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              {/* New fields for Contact Name and Phone */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Contact Name"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   fullWidth
                   required
                 />
@@ -848,13 +888,45 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
                       required
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} md={6}>
                     <TextField
-                      label="Tags (comma separated)"
-                      value={tags}
-                      onChange={(e) => setTags(e.target.value)}
                       fullWidth
+                      label="Add Tag"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      placeholder="Press Enter or click 'Add'"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Button
+                              type="button"
+                              onClick={handleAddTag}
+                              variant="contained"
+                              size="small"
+                              disabled={tags.length >= 4}
+                            >
+                              Add
+                            </Button>
+                          </InputAdornment>
+                        ),
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      }}
                     />
+                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {tags.map((tag) => (
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          onDelete={() => handleDeleteTag(tag)}
+                          variant="outlined"
+                        />
+                      ))}
+                    </Box>
                   </Grid>
                 </>
               ) : order.prType === 'Self-Written' ? (
@@ -873,9 +945,9 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
                     />
                   </Button>
                   {pdf && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {pdf.name}
-                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2">{pdf.name}</Typography>
+                    </Box>
                   )}
                 </Grid>
               ) : null}
@@ -901,6 +973,8 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
     </>
   );
 };
+
+export default AddSinglePRAccordion;
 
 function OrderDetailDialog({
   open,
