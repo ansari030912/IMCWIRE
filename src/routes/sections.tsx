@@ -41,6 +41,7 @@ const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
 const AllOrdersAdminPage = lazy(() => import('src/pages/all-orders'));
+const GenerateCustomOrderPage = lazy(() => import('src/pages/custom-order'));
 // Loading fallback
 const renderFallback = (
   <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">
@@ -147,6 +148,7 @@ function useRoutesByRole() {
       { path: 'add-videos', element: <AddVideosPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
       { path: 'setting', element: <SettingPage /> },
+      { path: 'custom-order', element: <GenerateCustomOrderPage /> },
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
@@ -176,7 +178,7 @@ export function Router() {
       ) : (
         <Navigate to="/login" replace />
       ),
-      children: [{ index: true, element: <HomePage /> }],
+      children: routesByRole,
     },
     {
       path: 'login',

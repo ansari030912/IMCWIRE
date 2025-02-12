@@ -226,10 +226,12 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
+import DashboardFAQSection from 'src/sections/faq/view/dashboardfaq';
 import DahboardVideos from 'src/sections/dashboard-videos/dashboard-video';
+import DashboardPlanView from 'src/sections/dashbaord-plans.tsx/dashboard-plan';
 
-import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 import { AnalyticsCurrentVisits } from '../analytics-current-visits';
+import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 
 // ----------------------------------------------------------------------
@@ -427,17 +429,29 @@ export function OverviewAnalyticsView() {
             title="Current Users Analytics"
             subheader="(+73%) than last year"
             chart={{
-              categories: ['Italy', 'Japan', 'China', 'Canada', 'France'],
+              categories: ['Italy', 'China', 'Canada', 'France', 'United State'],
               series: [
-                { name: '2023', data: [572, 125, 343, 2223, 512] },
-                { name: '2024', data: [828, 329, 753, 3155, 1242] },
+                { name: '2023', data: [572, 343, 2223, 512, 5812] },
+                { name: '2024', data: [828, 753, 3155, 1242, 7012] },
               ],
             }}
           />
         </Grid>
       </Grid>
+      <DashboardPlanView />
       <br />
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-center my-4">
+          {/* Heading with left and right lines */}
+          <div className="flex items-center w-full max-w-6xl">
+            <div className="flex-grow border-t border-gray-300" />
+            <h1 className="mx-4 text-3xl font-bold text-purple-800">How it Works!</h1>
+            <div className="flex-grow border-t border-gray-300" />
+          </div>
+        </div>
+      </div>
       <DahboardVideos />
+      <DashboardFAQSection />
     </DashboardContent>
   );
 }

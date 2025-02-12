@@ -5,22 +5,30 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Box,
+  Button,
   Card,
   Grid,
-  Alert,
-  Button,
-  Snackbar,
   MenuItem,
+  Snackbar,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import moment from 'moment';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ... interfaces remain unchanged ...
@@ -30,6 +38,9 @@ interface ICountry {
 }
 
 interface ICustomOrder {
+  discountType: string;
+  discountValue: any;
+  discountAmount: any;
   orderId: string;
   client_id: string;
   perma: string;
@@ -100,17 +111,17 @@ export function AddCustomPlanView() {
       const response = await axios.get(`${BASE_URL}/v1/pr/all-custom-order`, {
         headers: { 'X-API-Key': X_API_KEY, Authorization: `Bearer ${token}` },
       });
-      if (Array.isArray(response.data)) {
-        setCustomOrders(response.data);
-      } else {
-        console.error('Unexpected response', response.data);
-        setCustomOrders([]);
-      }
+      const sortedOrders = response.data.sort(
+        (a: ICustomOrder, b: ICustomOrder) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setCustomOrders(sortedOrders || []);
     } catch (error) {
       console.error('Error fetching custom orders:', error);
       setCustomOrders([]);
     }
   };
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchCustomOrders();
@@ -205,6 +216,9 @@ export function AddCustomPlanView() {
   const [countryToAdd, setCountryToAdd] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<ICountry[]>([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   const handleAddCategory = () => {
     if (categoryToAdd && !selectedCategories.includes(categoryToAdd)) {
       setSelectedCategories([...selectedCategories, categoryToAdd]);
@@ -227,6 +241,15 @@ export function AddCustomPlanView() {
     setSelectedCountries(
       selectedCountries.map((c) => (c.name === name ? { ...c, translation: !c.translation } : c))
     );
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const additionalCategoriesCost =
@@ -380,9 +403,9 @@ export function AddCustomPlanView() {
   ];
   const renderTimeline = () => (
     <Box>
-      <Typography variant="h6" className="mb-2">
+      {/* <Typography variant="h6" className="mb-2">
         Your Campaign
-      </Typography>
+      </Typography> */}
       <div className="grid grid-cols-1 gap-8">
         {timelineSteps.map((step, index) => (
           <div key={step.id} className="flex items-start mb-8 relative">
@@ -735,10 +758,9 @@ export function AddCustomPlanView() {
   // --------------------------
   return (
     <DashboardContent>
-      <Box p={4}>
-        <Typography variant="h4" className="mb-4">
-          Custom Plans
-        </Typography>
+      <h1 className="font-bold text-5xl text-purple-800 mb-6">IMCWIRE Custom Plans</h1>
+      <p className="text-gray-700">Manage custom plan for the platform.</p>
+      <Box>
         <Snackbar
           open={snackbarOpen}
           autoHideDuration={4000}
@@ -754,95 +776,97 @@ export function AddCustomPlanView() {
             {showForm ? 'Back to Plans' : 'Add New Custom Plan'}
           </Button>
         </Box>
-        <section>
-          {!showForm && (
-            <>
-              {customOrders && customOrders.length > 0 ? (
-                <Grid container spacing={2}>
-                  {customOrders
-                    .filter((order) => order.plan.type === 'custom-plan')
-                    .map(
-                      (order) =>
-                        order.plan.activate_plan === 1 && (
-                          <Grid key={order.orderId} item xs={12} md={6} lg={4}>
-                            {/* Card layout styled as provided */}
-                            <div
-                              className="bg-white rounded-lg overflow-hidden"
-                              style={{
-                                boxShadow:
-                                  '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
-                                borderRadius: '10px',
-                                marginBottom: '20px',
+        {showForm ? (
+          ''
+        ) : (
+          <Box>
+            <Card>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Plan Name</TableCell>
+                      <TableCell>Plan Description</TableCell>
+                      <TableCell align="center">Disount Price</TableCell>
+                      <TableCell align="center">Total Price</TableCell>
+                      <TableCell align="center">Price per PR</TableCell>
+                      <TableCell align="center">Number of PRs</TableCell>
+                      <TableCell align="center">Invoice URL</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {customOrders
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((order) => (
+                        <TableRow key={order.orderId}>
+                          <TableCell>
+                            <b>{order.plan.planName}</b>
+                            <br />
+                            <span className="text-gray-500">
+                              {moment(order.created_at).format('DD MMM YYYY')}
+                            </span>
+                          </TableCell>
+                          <TableCell title={order.plan.planDescription}>
+                            {order.plan.planDescription.length > 30
+                              ? `${order.plan.planDescription.substring(0, 30)}...`
+                              : order.plan.planDescription}
+                          </TableCell>
+                          <TableCell align="center">
+                            {order.discountAmount > 0 ? (
+                              order.discountType === 'percentage' ? (
+                                <div>
+                                  %{order.discountValue}
+                                  <br />
+                                  <span className="text-green-500">
+                                    {' '}
+                                    ${parseFloat(order.discountAmount)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-green-500">
+                                  ${parseFloat(order.discountAmount)}
+                                </span>
+                              )
+                            ) : (
+                              'No Discount'
+                            )}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            ${parseFloat(order.plan.totalPlanPrice)}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            ${parseFloat(order.plan.priceSingle)}
+                          </TableCell>
+                          <TableCell align="center">{order.plan.numberOfPR}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              variant="outlined"
+                              onClick={() => {
+                                navigator.clipboard.writeText(order.invoiceUrl);
                               }}
                             >
-                              {/* Plan Header */}
-                              <div
-                                style={{
-                                  backgroundImage: `url('/package.jpg')`,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center',
-                                }}
-                                className="w-full p-6 rounded-t-lg"
-                              >
-                                <h2 className="font-black text-center text-3xl">
-                                  {order.plan.planName}
-                                </h2>
-                                <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
-                                  ${order.plan.totalPlanPrice}
-                                </h2>
-                                <div className="flex justify-center mt-4">
-                                  <div className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
-                                    Custom Plan Invoice
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Plan Features */}
-                              <div className="w-full p-6 bg-white rounded-b-lg">
-                                <ul className="space-y-3">
-                                  <li className="flex gap-2 items-center">
-                                    ✅ <p className="text-gray-500">{order.plan.planDescription}</p>
-                                  </li>
-                                  <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      Single PR{' '}
-                                      <span className="text-purple-800 font-bold">
-                                        {order.plan.priceSingle}$
-                                      </span>
-                                    </p>
-                                  </li>
-                                  <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      {order.plan.numberOfPR} PR Articles
-                                    </p>
-                                  </li>
-                                </ul>
-                              </div>
-                              {/* Copy Invoice URL Button */}
-                              <div className="w-full p-6">
-                                <Button
-                                  variant="outlined"
-                                  className="w-full"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(order.invoiceUrl);
-                                    showSnackbar('Invoice URL copied to clipboard!', 'success');
-                                  }}
-                                >
-                                  Copy Invoice URL
-                                </Button>
-                              </div>
-                            </div>
-                          </Grid>
-                        )
-                    )}
-                </Grid>
-              ) : (
-                <Alert severity="info">No custom plans available.</Alert>
-              )}
-            </>
-          )}
-        </section>
+                              Copy Invoice URL
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                count={customOrders.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                onPageChange={handleChangePage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Card>
+          </Box>
+        )}
         <Grid container spacing={2}>
           {/* Left Column: Timeline (only in wizard mode) */}
           {showForm && (
@@ -851,6 +875,7 @@ export function AddCustomPlanView() {
                 <Typography variant="h5" className="mb-8 font-bold">
                   Your campaign starts here
                 </Typography>
+                <br />
                 {renderTimeline()}
               </Box>
             </Grid>

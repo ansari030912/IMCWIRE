@@ -8,26 +8,26 @@ import {
   Box,
   Card,
   Chip,
-  Table,
   Alert,
+  Table,
   Button,
   Dialog,
   Select,
   Divider,
-  TableRow,
   MenuItem,
   Snackbar,
+  TableRow,
   TableBody,
   TableCell,
   TableHead,
   TextField,
-  Typography,
   IconButton,
   InputLabel,
+  Typography,
   DialogTitle,
   FormControl,
-  DialogContent,
   DialogActions,
+  DialogContent,
   TableContainer,
   TablePagination,
 } from '@mui/material';
@@ -495,6 +495,121 @@ export function AllOrdersView() {
 /* -------------------------------------------
    7) The Detail Dialog
 -------------------------------------------- */
+function EditableIndustryList({
+  industries,
+  setIndustries,
+}: {
+  industries: any[];
+  setIndustries: (newIndustries: any[]) => void;
+}) {
+  const handleChange = (index: number, field: string, value: any) => {
+    const newIndustries = [...industries];
+    newIndustries[index] = { ...newIndustries[index], [field]: value };
+    setIndustries(newIndustries);
+  };
+
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <StyledTableHeadCell>Category</StyledTableHeadCell>
+          <StyledTableHeadCell>Price</StyledTableHeadCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {industries.map((cat: any, idx: number) => (
+          <TableRow key={idx}>
+            <TableCell>
+              <TextField
+                value={cat.categoryName || ''}
+                onChange={(e) => handleChange(idx, 'categoryName', e.target.value)}
+                variant="standard"
+              />
+            </TableCell>
+            <TableCell>
+              <TextField
+                type="number"
+                value={cat.categoryPrice !== undefined ? cat.categoryPrice : 0}
+                onChange={(e) => handleChange(idx, 'categoryPrice', parseFloat(e.target.value))}
+                variant="standard"
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function EditableCountryList({
+  countries,
+  setCountries,
+}: {
+  countries: any[];
+  setCountries: (newCountries: any[]) => void;
+}) {
+  const handleChange = (index: number, field: string, value: any) => {
+    const newCountries = [...countries];
+    newCountries[index] = { ...newCountries[index], [field]: value };
+    setCountries(newCountries);
+  };
+
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <StyledTableHeadCell>Country</StyledTableHeadCell>
+          <StyledTableHeadCell>Price</StyledTableHeadCell>
+          <StyledTableHeadCell>Translation</StyledTableHeadCell>
+          <StyledTableHeadCell>Translation Price</StyledTableHeadCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {countries.map((tc: any, idx: number) => (
+          <TableRow key={idx}>
+            <TableCell>
+              <TextField
+                value={tc.countryName || ''}
+                onChange={(e) => handleChange(idx, 'countryName', e.target.value)}
+                variant="standard"
+              />
+            </TableCell>
+            <TableCell>
+              <TextField
+                type="number"
+                value={tc.countryPrice !== undefined ? tc.countryPrice : 0}
+                onChange={(e) => handleChange(idx, 'countryPrice', parseFloat(e.target.value))}
+                variant="standard"
+              />
+            </TableCell>
+            <TableCell>
+              <FormControl variant="standard" fullWidth>
+                {/* <InputLabel>translationRequired</InputLabel> */}
+                <Select
+                  label=""
+                  value={tc.translationRequired || ''}
+                  onChange={(e) => handleChange(idx, 'translationRequired', e.target.value)}
+                >
+                  <MenuItem value="Yes">Yes</MenuItem>
+                  <MenuItem value="No">No</MenuItem>
+                </Select>
+              </FormControl>
+            </TableCell>
+            <TableCell>
+              <TextField
+                type="number"
+                value={tc.translationPrice !== undefined ? tc.translationPrice : 0}
+                onChange={(e) => handleChange(idx, 'translationPrice', parseFloat(e.target.value))}
+                variant="standard"
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 type OrderDetailDialogProps = {
   open: boolean;
   onClose: () => void;
@@ -510,6 +625,29 @@ function OrderDetailDialog({
   onSinglePRUpdate,
   onOrderStatusUpdate,
 }: OrderDetailDialogProps) {
+  // Always call hooks first (even if order is null)
+  const [editingIndustry, setEditingIndustry] = useState(false);
+  const [editingCountries, setEditingCountries] = useState(false);
+  const [localIndustryCategories, setLocalIndustryCategories] = useState<any[]>(
+    order ? order.industryCategories || [] : []
+  );
+  const [localTargetCountries, setLocalTargetCountries] = useState<any[]>(
+    order ? order.targetCountries || [] : []
+  );
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'info' | 'warning'
+  >('success');
+
+  // Sync local states when order changes
+  useEffect(() => {
+    if (order) {
+      setLocalIndustryCategories(order.industryCategories || []);
+      setLocalTargetCountries(order.targetCountries || []);
+    }
+  }, [order]);
+
   if (!order) return null;
 
   const planRecord =
@@ -518,27 +656,93 @@ function OrderDetailDialog({
   const usedPrs = planRecord?.used_prs || 0;
   const leftPrs = totalPrs - usedPrs;
 
+  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  // Handler to update Industry Categories via API call
+  const handleUpdateIndustry = async () => {
+    try {
+      // Inside OrderDetailDialog (in both update handlers)
+      const payload = {
+        industryCategories: localIndustryCategories.map((item) => ({
+          categoryName: item.categoryName, // send as "name"
+          categoryPrice: item.categoryPrice,
+        })),
+        targetCountries: localTargetCountries.map((item) => ({
+          countryName: item.countryName, // send as "name"
+          countryPrice: item.countryPrice,
+          translationRequired: item.translationRequired, // key renamed
+          translationPrice: item.translationPrice,
+        })),
+      };
+
+      const userCookie = Cookies.get('user');
+      if (!userCookie) return;
+      const { token } = JSON.parse(decodeURIComponent(userCookie));
+      await axios.put(`${BASE_URL}/v1/pr/superadmin/update-order/${order.id}`, payload, {
+        headers: {
+          'x-api-key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEditingIndustry(false);
+      setSnackbarMessage('Industry Categories updated successfully.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error('Error updating industry categories:', err);
+      setSnackbarMessage('Failed to update Industry Categories.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  // Handler to update Target Countries via API call
+  const handleUpdateCountries = async () => {
+    try {
+      // Inside OrderDetailDialog (in both update handlers)
+      const payload = {
+        industryCategories: localIndustryCategories.map((item) => ({
+          categoryName: item.categoryName, // send as "name"
+          categoryPrice: item.categoryPrice,
+        })),
+        targetCountries: localTargetCountries.map((item) => ({
+          countryName: item.countryName, // send as "name"
+          countryPrice: item.countryPrice,
+          translationRequired: item.translationRequired, // key renamed
+          translationPrice: item.translationPrice,
+        })),
+      };
+
+      const userCookie = Cookies.get('user');
+      if (!userCookie) return;
+      const { token } = JSON.parse(decodeURIComponent(userCookie));
+      await axios.put(`${BASE_URL}/v1/pr/superadmin/update-order/${order.id}`, payload, {
+        headers: {
+          'x-api-key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEditingCountries(false);
+      setSnackbarMessage('Target Countries updated successfully.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error('Error updating target countries:', err);
+      setSnackbarMessage('Failed to update Target Countries.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ fontWeight: 'bold' }}>Order Details</DialogTitle>
       <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 72 72">
-          <path
-            fill="#ff1818"
-            d="m58.14 21.78l-7.76-8.013l-14.29 14.22l-14.22-14.22l-8.013 8.013L28.217 36l-14.36 14.22l8.014 8.013l14.22-14.22l14.29 14.22l7.76-8.013L43.921 36z"
-          />
-          <path
-            fill="none"
-            stroke="#000"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeMiterlimit="10"
-            strokeWidth="2"
-            d="m58.14 21.78l-7.76-8.013l-14.29 14.22l-14.22-14.22l-8.013 8.013L28.207 36l-14.35 14.22l8.014 8.013l14.22-14.22l14.29 14.22l7.76-8.013L43.921 36z"
-          />
-        </svg>
+        {/* Your SVG close icon */}
       </IconButton>
-
       <DialogContent dividers>
         <PlanInfoTable order={order} />
 
@@ -548,21 +752,255 @@ function OrderDetailDialog({
 
         <Divider sx={{ my: 2 }} />
 
+        {/* Editable Industry Categories Section */}
         {order.industryCategories && order.industryCategories.length > 0 && (
           <Box mb={3}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Industry Categories
-            </Typography>
-            <IndustryList industries={order.industryCategories} />
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Industry Categories
+              </Typography>
+              <Box>
+                <IconButton
+                  onClick={() => {
+                    if (editingIndustry) {
+                      handleUpdateIndustry();
+                    } else {
+                      setEditingIndustry(true);
+                    }
+                  }}
+                >
+                  {editingIndustry ? (
+                    <span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="#39a200"
+                          d="M18 10a1 1 0 0 0-1-1H5.41l2.3-2.29a1 1 0 0 0-1.42-1.42l-4 4a1 1 0 0 0-.21 1.09A1 1 0 0 0 3 11h14a1 1 0 0 0 1-1m3.92 3.62A1 1 0 0 0 21 13H7a1 1 0 0 0 0 2h11.59l-2.3 2.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l4-4a1 1 0 0 0 .21-1.09"
+                        />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <g
+                          fill="none"
+                          stroke="gray"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                        >
+                          <path strokeDasharray="20" strokeDashoffset="20" d="M3 21h18">
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              dur="0.2s"
+                              values="20;0"
+                            />
+                          </path>
+                          <path
+                            strokeDasharray="48"
+                            strokeDashoffset="48"
+                            d="M7 17v-4l10 -10l4 4l-10 10h-4"
+                          >
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              begin="0.2s"
+                              dur="0.6s"
+                              values="48;0"
+                            />
+                          </path>
+                          <path strokeDasharray="8" strokeDashoffset="8" d="M14 6l4 4">
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              begin="0.8s"
+                              dur="0.2s"
+                              values="8;0"
+                            />
+                          </path>
+                        </g>
+                        <path fill="#39a200" fillOpacity="0" d="M14 6l4 4L21 7L17 3Z">
+                          <animate
+                            fill="freeze"
+                            attributeName="fill-opacity"
+                            begin="1.1s"
+                            dur="0.15s"
+                            values="0;0.3"
+                          />
+                        </path>
+                      </svg>
+                    </span>
+                  )}
+                </IconButton>
+                {editingIndustry && (
+                  <IconButton
+                    onClick={() => {
+                      // Cancel editing and revert changes
+                      setLocalIndustryCategories(order.industryCategories || []);
+                      setEditingIndustry(false);
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="#f81818"
+                        fillRule="evenodd"
+                        d="m12 10.586l6.293-6.293l1.414 1.414L13.414 12l6.293 6.293l-1.414 1.414L12 13.414l-6.293 6.293l-1.414-1.414L10.586 12L4.293 5.707l1.414-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </IconButton>
+                )}
+              </Box>
+            </Box>
+            {editingIndustry ? (
+              <EditableIndustryList
+                industries={localIndustryCategories}
+                setIndustries={setLocalIndustryCategories}
+              />
+            ) : (
+              <IndustryList industries={localIndustryCategories} />
+            )}
           </Box>
         )}
 
+        {/* Editable Target Countries Section */}
         {order.targetCountries && order.targetCountries.length > 0 && (
           <Box mb={3}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Target Countries
-            </Typography>
-            <CountryList countries={order.targetCountries} />
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Target Countries
+              </Typography>
+              <Box>
+                <IconButton
+                  onClick={() => {
+                    if (editingCountries) {
+                      handleUpdateCountries();
+                    } else {
+                      setEditingCountries(true);
+                    }
+                  }}
+                >
+                  {editingCountries ? (
+                    <span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="#39a200"
+                          d="M18 10a1 1 0 0 0-1-1H5.41l2.3-2.29a1 1 0 0 0-1.42-1.42l-4 4a1 1 0 0 0-.21 1.09A1 1 0 0 0 3 11h14a1 1 0 0 0 1-1m3.92 3.62A1 1 0 0 0 21 13H7a1 1 0 0 0 0 2h11.59l-2.3 2.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l4-4a1 1 0 0 0 .21-1.09"
+                        />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <g
+                          fill="none"
+                          stroke="gray"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                        >
+                          <path strokeDasharray="20" strokeDashoffset="20" d="M3 21h18">
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              dur="0.2s"
+                              values="20;0"
+                            />
+                          </path>
+                          <path
+                            strokeDasharray="48"
+                            strokeDashoffset="48"
+                            d="M7 17v-4l10 -10l4 4l-10 10h-4"
+                          >
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              begin="0.2s"
+                              dur="0.6s"
+                              values="48;0"
+                            />
+                          </path>
+                          <path strokeDasharray="8" strokeDashoffset="8" d="M14 6l4 4">
+                            <animate
+                              fill="freeze"
+                              attributeName="stroke-dashoffset"
+                              begin="0.8s"
+                              dur="0.2s"
+                              values="8;0"
+                            />
+                          </path>
+                        </g>
+                        <path fill="#39a200" fillOpacity="0" d="M14 6l4 4L21 7L17 3Z">
+                          <animate
+                            fill="freeze"
+                            attributeName="fill-opacity"
+                            begin="1.1s"
+                            dur="0.15s"
+                            values="0;0.3"
+                          />
+                        </path>
+                      </svg>
+                    </span>
+                  )}
+                </IconButton>
+                {editingCountries && (
+                  <IconButton
+                    onClick={() => {
+                      // Cancel editing and revert changes
+                      setLocalTargetCountries(order.targetCountries || []);
+                      setEditingCountries(false);
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="#f81818"
+                        fillRule="evenodd"
+                        d="m12 10.586l6.293-6.293l1.414 1.414L13.414 12l6.293 6.293l-1.414 1.414L12 13.414l-6.293 6.293l-1.414-1.414L10.586 12L4.293 5.707l1.414-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </IconButton>
+                )}
+              </Box>
+            </Box>
+            {editingCountries ? (
+              <EditableCountryList
+                countries={localTargetCountries}
+                setCountries={setLocalTargetCountries}
+              />
+            ) : (
+              <CountryList countries={localTargetCountries} />
+            )}
           </Box>
         )}
 
@@ -591,9 +1029,14 @@ function OrderDetailDialog({
           </Box>
         </Box>
 
-        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Single PR Details
-        </Typography>
+        <div className="flex justify-between">
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Single PR Details
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+            + Add Single Pr
+          </Typography>
+        </div>
         {order.singlePRDetails && order.singlePRDetails.length > 0 ? (
           <SinglePRTable
             singlePRDetails={order.singlePRDetails}
@@ -605,12 +1048,21 @@ function OrderDetailDialog({
           </Typography>
         )}
       </DialogContent>
-
       <DialogActions>
         <Button variant="contained" color="inherit" onClick={onClose}>
           Close
         </Button>
       </DialogActions>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 }
@@ -831,7 +1283,7 @@ function CountryList({ countries }: { countries: any[] }) {
           <TableRow key={tc.id}>
             <StyledTableCell>{tc.countryName}</StyledTableCell>
             <StyledTableCell>${tc.countryPrice}</StyledTableCell>
-            <StyledTableCell>{tc.translation}</StyledTableCell>
+            <StyledTableCell>{tc.translationRequired}</StyledTableCell>
             <StyledTableCell>${tc.translationPrice}</StyledTableCell>
           </TableRow>
         ))}

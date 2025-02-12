@@ -84,7 +84,7 @@ export function UserTransaction() {
                 <Typography variant="body2" color="textSecondary">
                   It appears that you haven&apos;t made any transactions yet. To get started, please
                   visit our{' '}
-                  <a href="/plans" className="text-blue-500 underline hover:text-blue-700">
+                  <a href="/dashboard/plans" className="text-blue-500 underline hover:text-blue-700">
                     Plans page
                   </a>{' '}
                   to explore our offerings and make a purchase.

@@ -1107,7 +1107,7 @@ const OrdersView: React.FC = () => {
           <Typography variant="body2" color="textSecondary" align="center">
             It appears that you haven&apos;t purchased any Press Releases yet. To get started,
             please visit our{' '}
-            <a href="/plans" className="text-blue-500 underline hover:text-blue-700">
+            <a href="/dashboard/plans" className="text-blue-500 underline hover:text-blue-700">
               Plans page
             </a>{' '}
             to explore our offerings and place your order.

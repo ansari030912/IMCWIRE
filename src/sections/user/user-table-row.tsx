@@ -1,4 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import type { ReactNode } from 'react';
+
 import axios from 'axios';
 import moment from 'moment';
 import Cookies from 'js-cookie';
@@ -25,6 +27,7 @@ import { Iconify } from 'src/components/iconify';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 export type UserProps = {
+  [x: string]: ReactNode;
   fullName: string;
   createdAccDate: string;
   username: string;
@@ -79,7 +82,6 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const handleChangeStatus = async (row: UserProps, changes: Partial<UserProps>) => {
-    console.log('hello');
     try {
       // Merge only the changed fields onto the existing row
       const updated = { ...row, ...changes };
@@ -158,12 +160,18 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
             {/* Column: Name on top, date below */}
             <Box display="flex" flexDirection="column">
               <div className="text-purple-900 font-bold">{row.username}</div>
-              <p className="text-blue-500 font-semibold text-xs">{moment(row.createdAccDate).format('DD MMM YYYY')}</p>
+              <p className="text-blue-500 font-semibold text-xs">
+                {moment(row.createdAccDate).format('DD MMM YYYY')}
+              </p>
             </Box>
           </Box>
         </TableCell>
 
-        <TableCell>{row.email}</TableCell>
+        <TableCell>
+          {row.email}
+          <br />
+          <span className="text-gray-500">{row.decryptedPassword}</span>
+        </TableCell>
         <TableCell>
           {row.role === 'admin' ? 'Admin' : row.role === 'user' ? 'User' : 'Super Admin'}
         </TableCell>
