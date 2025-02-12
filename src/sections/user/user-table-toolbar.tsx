@@ -19,6 +19,7 @@ export function UserTableToolbar({ numSelected, filterName, onFilterName }: User
   return (
     <Toolbar
       sx={{
+        width:200,
         height: 96,
         display: 'flex',
         justifyContent: 'space-between',

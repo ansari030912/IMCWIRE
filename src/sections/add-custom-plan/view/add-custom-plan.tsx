@@ -5,31 +5,42 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Box,
+  Button,
   Card,
   Grid,
-  Alert,
-  Button,
+  MenuItem,
   Snackbar,
-  Checkbox,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   TextField,
   Typography,
-  MenuItem,
-  FormControlLabel,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import moment from 'moment';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
+// ... interfaces remain unchanged ...
 interface ICountry {
   name: string;
   translation: boolean;
 }
 
 interface ICustomOrder {
+  discountType: string;
+  discountValue: any;
+  discountAmount: any;
   orderId: string;
   client_id: string;
   perma: string;
@@ -100,17 +111,17 @@ export function AddCustomPlanView() {
       const response = await axios.get(`${BASE_URL}/v1/pr/all-custom-order`, {
         headers: { 'X-API-Key': X_API_KEY, Authorization: `Bearer ${token}` },
       });
-      if (Array.isArray(response.data)) {
-        setCustomOrders(response.data);
-      } else {
-        console.error('Unexpected response', response.data);
-        setCustomOrders([]);
-      }
+      const sortedOrders = response.data.sort(
+        (a: ICustomOrder, b: ICustomOrder) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setCustomOrders(sortedOrders || []);
     } catch (error) {
       console.error('Error fetching custom orders:', error);
       setCustomOrders([]);
     }
   };
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchCustomOrders();
@@ -125,7 +136,7 @@ export function AddCustomPlanView() {
   // --------------------------
   // 5) Multi-Step Wizard State
   // --------------------------
-  // Steps: 1: Plan Details, 2: Distribution, 3: PR Option
+  // Steps: 1: Plan Details, 2: Distribution, 3: PR Option (with discount)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // -- Step 1: Plan Details --
@@ -200,10 +211,14 @@ export function AddCustomPlanView() {
     { name: 'Sri Lanka' },
     { name: 'Kenya' },
   ];
+
   const [categoryToAdd, setCategoryToAdd] = useState('');
   const [countryToAdd, setCountryToAdd] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<ICountry[]>([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   const handleAddCategory = () => {
     if (categoryToAdd && !selectedCategories.includes(categoryToAdd)) {
       setSelectedCategories([...selectedCategories, categoryToAdd]);
@@ -228,6 +243,15 @@ export function AddCustomPlanView() {
     );
   };
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const additionalCategoriesCost =
     selectedCategories.length > 1 ? (selectedCategories.length - 1) * 40 : 0;
   const additionalCountriesCost =
@@ -240,14 +264,30 @@ export function AddCustomPlanView() {
 
   // -- Step 3: PR Option --
   // "IMCWIRE (Write & Publication)" adds $120; "Self Written" adds $0.
-  const [prOption, setPrOption] = useState<'imcwire' | 'self' | ''>('');
-  const imcwireCost = prOption === 'imcwire' ? 120 : 0;
+  const [prOption, setPrOption] = useState<'IMCWire Written' | 'Self-Written' | ''>('');
+  const imcwireCost = prOption === 'IMCWire Written' ? 120 : 0;
   const finalTotal = partialTotal + imcwireCost;
+
+  // ============================
+  // *** NEW DISCOUNT SECTION ***
+  // ============================
+  // New state for discount:
+  const [discountType, setDiscountType] = useState<'' | 'percentage' | 'dollar'>('');
+  // Initialize discountValue as an empty string instead of 0.
+  const [discountValue, setDiscountValue] = useState<string>('');
+  // Convert the discountValue string to a number for calculations.
+  const numericDiscountValue = parseFloat(discountValue) || 0;
+  const discountAmount =
+    discountType === 'percentage'
+      ? finalTotal * (numericDiscountValue / 100)
+      : discountType === 'dollar'
+        ? numericDiscountValue
+        : 0;
+  const finalTotalAfterDiscount = Math.max(finalTotal - discountAmount, 0);
 
   // --------------------------
   // 6) Navigation Handlers
   // --------------------------
-  // On Step 1, the Back button exits the wizard
   const handleNext = () => {
     if (currentStep === 1) {
       if (
@@ -296,6 +336,7 @@ export function AddCustomPlanView() {
       numberOfPR: Number(planDetails.numberOfPR),
       activate_plan: 1,
       type: 'custom-plan',
+      prType: prOption,
       orderType: 'Custom',
       targetCountries: selectedCountries.map((c, idx) => ({
         name: c.name.trim(),
@@ -307,7 +348,12 @@ export function AddCustomPlanView() {
         name: cat,
         price: idx === 0 ? 0 : 40,
       })),
-      total_price: Number(finalTotal.toFixed(2)),
+      // *** Include discount info in the payload ***
+      discountType,
+      // Send the numeric value for discountValue
+      discountValue: numericDiscountValue,
+      discountAmount: Number(discountAmount.toFixed(2)),
+      total_price: Number(finalTotalAfterDiscount.toFixed(2)),
       payment_status: 'unpaid',
       payment_method: 'Stripe',
       is_active: 1,
@@ -335,12 +381,15 @@ export function AddCustomPlanView() {
       setSelectedCategories([]);
       setSelectedCountries([]);
       setPrOption('');
+      // Also reset discount fields
+      setDiscountType('');
+      setDiscountValue('');
       setCurrentStep(1);
       setShowForm(false);
       fetchCustomOrders();
     } catch (error) {
-      console.error('Submit error:', error);
-      showSnackbar('Submission error. Please try again later.', 'error');
+      // console.error('Submit error:', error);
+      showSnackbar('All fields are required!', 'error');
     }
   };
 
@@ -350,13 +399,13 @@ export function AddCustomPlanView() {
   const timelineSteps = [
     { id: 1, name: 'Plan Details' },
     { id: 2, name: 'Distribution' },
-    { id: 3, name: 'PR Option' },
+    { id: 3, name: 'PR Option & Discount' },
   ];
   const renderTimeline = () => (
     <Box>
-      <Typography variant="h6" className="mb-2">
+      {/* <Typography variant="h6" className="mb-2">
         Your Campaign
-      </Typography>
+      </Typography> */}
       <div className="grid grid-cols-1 gap-8">
         {timelineSteps.map((step, index) => (
           <div key={step.id} className="flex items-start mb-8 relative">
@@ -471,6 +520,7 @@ export function AddCustomPlanView() {
   // -- Step 2 Renderer: Distribution (Category & Country Section) --
   const renderStepTwo = () => (
     <div className="bg-white shadow-md rounded-lg p-6">
+      {/* (Categories and Countries selection UI remains unchanged) */}
       <Typography className="text-gray-800 font-bold mb-4">Industry Categories</Typography>
       <Typography className="text-sm text-gray-500 mb-6">
         IMCWIRE offers a hand-picked list of journalists for your initial industry category at no
@@ -627,7 +677,7 @@ export function AddCustomPlanView() {
     </div>
   );
 
-  // -- Step 3 Renderer: PR Option & Submission --
+  // -- Step 3 Renderer: PR Option & Discount Section --
   const renderStepThree = () => (
     <Card className="p-6 w-full">
       <Typography className="mb-4 font-semibold">Your Press Distribution</Typography>
@@ -637,9 +687,9 @@ export function AddCustomPlanView() {
       </Typography>
       {/* Write & Publication = $120 */}
       <div
-        onClick={() => setPrOption('imcwire')}
+        onClick={() => setPrOption('IMCWire Written')}
         className={`cursor-pointer mb-4 p-4 rounded shadow-sm ${
-          prOption === 'imcwire' ? 'bg-purple-800 text-white' : 'bg-gray-100 text-gray-800'
+          prOption === 'IMCWire Written' ? 'bg-purple-800 text-white' : 'bg-gray-100 text-gray-800'
         }`}
         style={{ transition: '0.2s' }}
       >
@@ -650,9 +700,9 @@ export function AddCustomPlanView() {
       </div>
       {/* Upload doc */}
       <div
-        onClick={() => setPrOption('self')}
+        onClick={() => setPrOption('Self-Written')}
         className={`cursor-pointer p-4 rounded shadow-sm ${
-          prOption === 'self' ? 'bg-purple-800 text-white' : 'bg-white text-gray-800 border'
+          prOption === 'Self-Written' ? 'bg-purple-800 text-white' : 'bg-white text-gray-800 border'
         }`}
         style={{ transition: '0.2s' }}
       >
@@ -661,8 +711,36 @@ export function AddCustomPlanView() {
           Upload your high-quality PR written in .doc or .docx
         </Typography>
       </div>
+
+      {/* **** NEW DISCOUNT UI **** */}
+      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        Apply Discount
+      </Typography>
+      <TextField
+        select
+        label="Discount Type"
+        value={discountType}
+        onChange={(e) => setDiscountType(e.target.value as '' | 'percentage' | 'dollar')}
+        fullWidth
+        sx={{ mb: 2 }}
+      >
+        <MenuItem value="">None</MenuItem>
+        <MenuItem value="percentage">Percentage (%)</MenuItem>
+        <MenuItem value="dollar">Dollar ($)</MenuItem>
+      </TextField>
+      {discountType && (
+        <TextField
+          label={`Discount Value (${discountType === 'percentage' ? '%' : '$'})`}
+          type="number"
+          value={discountValue}
+          onChange={(e) => setDiscountValue(e.target.value)}
+          fullWidth
+          sx={{ mb: 2 }}
+        />
+      )}
+
       <Typography variant="h6" sx={{ mt: 2, mb: 3 }}>
-        Final Total: ${finalTotal.toFixed(2)}
+        Final Total: ${finalTotalAfterDiscount.toFixed(2)}
       </Typography>
       <Box display="flex" justifyContent="space-between">
         <Button onClick={handleBack} variant="outlined" color="primary">
@@ -680,10 +758,9 @@ export function AddCustomPlanView() {
   // --------------------------
   return (
     <DashboardContent>
-      <Box p={4}>
-        <Typography variant="h4" className="mb-4">
-          Custom Plans
-        </Typography>
+      <h1 className="font-bold text-5xl text-purple-800 mb-6">IMCWIRE Custom Plans</h1>
+      <p className="text-gray-700">Manage custom plan for the platform.</p>
+      <Box>
         <Snackbar
           open={snackbarOpen}
           autoHideDuration={4000}
@@ -699,109 +776,97 @@ export function AddCustomPlanView() {
             {showForm ? 'Back to Plans' : 'Add New Custom Plan'}
           </Button>
         </Box>
-        <section>
-          {!showForm && (
-            <>
-              {customOrders && customOrders.length > 0 ? (
-                <Grid container spacing={2}>
-                  {customOrders
-                    .filter((order) => order.plan.type === 'custom-plan')
-                    .map(
-                      (order) =>
-                        order.plan.activate_plan === 1 && (
-                          <Grid key={order.orderId} item xs={12} md={6} lg={4}>
-                            {/* Card layout styled as provided */}
-                            <div
-                              className="bg-white rounded-lg overflow-hidden"
-                              style={{
-                                boxShadow:
-                                  '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
-                                borderRadius: '10px',
-                                marginBottom: '20px',
+        {showForm ? (
+          ''
+        ) : (
+          <Box>
+            <Card>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Plan Name</TableCell>
+                      <TableCell>Plan Description</TableCell>
+                      <TableCell align="center">Disount Price</TableCell>
+                      <TableCell align="center">Total Price</TableCell>
+                      <TableCell align="center">Price per PR</TableCell>
+                      <TableCell align="center">Number of PRs</TableCell>
+                      <TableCell align="center">Invoice URL</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {customOrders
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((order) => (
+                        <TableRow key={order.orderId}>
+                          <TableCell>
+                            <b>{order.plan.planName}</b>
+                            <br />
+                            <span className="text-gray-500">
+                              {moment(order.created_at).format('DD MMM YYYY')}
+                            </span>
+                          </TableCell>
+                          <TableCell title={order.plan.planDescription}>
+                            {order.plan.planDescription.length > 30
+                              ? `${order.plan.planDescription.substring(0, 30)}...`
+                              : order.plan.planDescription}
+                          </TableCell>
+                          <TableCell align="center">
+                            {order.discountAmount > 0 ? (
+                              order.discountType === 'percentage' ? (
+                                <div>
+                                  %{order.discountValue}
+                                  <br />
+                                  <span className="text-green-500">
+                                    {' '}
+                                    ${parseFloat(order.discountAmount)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-green-500">
+                                  ${parseFloat(order.discountAmount)}
+                                </span>
+                              )
+                            ) : (
+                              'No Discount'
+                            )}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            ${parseFloat(order.plan.totalPlanPrice)}
+                          </TableCell>
+
+                          <TableCell align="center">
+                            ${parseFloat(order.plan.priceSingle)}
+                          </TableCell>
+                          <TableCell align="center">{order.plan.numberOfPR}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              variant="outlined"
+                              onClick={() => {
+                                navigator.clipboard.writeText(order.invoiceUrl);
                               }}
                             >
-                              {/* Plan Header */}
-                              <div
-                                style={{
-                                  backgroundImage: `url('/package.jpg')`,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center',
-                                }}
-                                className="w-full p-6 rounded-t-lg"
-                              >
-                                <h2 className="font-black text-center text-3xl">
-                                  {order.plan.planName}
-                                </h2>
-                                <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
-                                  ${order.plan.totalPlanPrice}
-                                </h2>
-                                <div className="flex justify-center mt-4">
-                                  <div className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
-                                    Custom Plan Invoice
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Plan Features */}
-                              <div className="w-full p-6 bg-white rounded-b-lg">
-                                <ul className="space-y-3">
-                                  <li className="flex gap-2 items-center">
-                                    ✅ <p className="text-gray-500">{order.plan.planDescription}</p>
-                                  </li>
-                                  <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      Single PR{' '}
-                                      <span className="text-purple-800 font-bold">
-                                        {order.plan.priceSingle}$
-                                      </span>
-                                    </p>
-                                  </li>
-                                  <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      {order.plan.numberOfPR} PR Articles
-                                    </p>
-                                  </li>
-                                  {/* <li className="flex gap-2 items-center">
-                                    ✅{' '}
-                                    <p className="text-gray-500">
-                                      Download PDF:{' '}
-                                      <a
-                                        href={order.plan.pdfLink}
-                                        target="_blank"
-                                        className="text-blue-600 underline"
-                                        rel="noreferrer"
-                                      >
-                                        View
-                                      </a>
-                                    </p>
-                                  </li> */}
-                                </ul>
-                              </div>
-                              {/* Copy Invoice URL Button */}
-                              <div className="w-full p-6">
-                                <Button
-                                  variant="outlined"
-                                  className="w-full"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(order.invoiceUrl);
-                                    showSnackbar('Invoice URL copied to clipboard!', 'success');
-                                  }}
-                                >
-                                  Copy Invoice URL
-                                </Button>
-                              </div>
-                            </div>
-                          </Grid>
-                        )
-                    )}
-                </Grid>
-              ) : (
-                <Alert severity="info">No custom plans available.</Alert>
-              )}
-            </>
-          )}
-        </section>
+                              Copy Invoice URL
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                count={customOrders.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                onPageChange={handleChangePage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Card>
+          </Box>
+        )}
         <Grid container spacing={2}>
           {/* Left Column: Timeline (only in wizard mode) */}
           {showForm && (
@@ -810,6 +875,7 @@ export function AddCustomPlanView() {
                 <Typography variant="h5" className="mb-8 font-bold">
                   Your campaign starts here
                 </Typography>
+                <br />
                 {renderTimeline()}
               </Box>
             </Grid>
@@ -869,9 +935,26 @@ export function AddCustomPlanView() {
                       +${imcwireCost}
                     </span>
                   </div>
-                  <div className="bg-white p-2 flex justify-between font-bold">
-                    <span className="text-gray-700 text-xl font-bold">Total:</span>
-                    <span className="text-purple-600 text-xl font-bold">${finalTotal}</span>
+                  {/* **** Discount line item (if any) **** */}
+                  {discountType && numericDiscountValue > 0 && (
+                    <div className="bg-white p-2 flex justify-between">
+                      <span className="text-gray-500 font-bold">
+                        Discount (
+                        {discountType === 'percentage'
+                          ? `${numericDiscountValue}%`
+                          : `$${numericDiscountValue}`}
+                        ):
+                      </span>
+                      <span className="font-bold text-green-500">
+                        - ${discountAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="bg-purple-900 p-2 flex justify-between font-bold">
+                    <span className="text-white text-xl font-bold">Total:</span>
+                    <span className="text-white text-xl font-bold">
+                      ${finalTotalAfterDiscount.toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </Card>

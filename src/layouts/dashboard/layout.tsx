@@ -63,7 +63,11 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
           slotProps={{
             container: {
               maxWidth: false,
-              sx: { px: { [layoutQuery]: 5 }, bgcolor: '#f1eaff', boxShadow:"0 5px 10px rgba(0, 0, 0, 0.15)" },
+              sx: {
+                px: { [layoutQuery]: 5 },
+                bgcolor: '#f1eaff',
+                boxShadow: '0 5px 10px rgba(0, 0, 0, 0.15)',
+              },
             },
           }}
           sx={header?.sx}
@@ -82,33 +86,28 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                     [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
                   }}
                 />
-                <NavMobile
-                  data={navData}
-                  open={navOpen}
-                  onClose={() => setNavOpen(false)}
-                  workspaces={_workspaces}
-                />
+                <NavMobile data={navData} open={navOpen} onClose={() => setNavOpen(false)} />
               </>
             ),
             rightArea: (
               <Box gap={1} display="flex" alignItems="center">
-                <LanguagePopover data={_langs} />
-                <NotificationsPopover data={_notifications} />
+                {/* <LanguagePopover data={_langs} /> */}
+                {/* <NotificationsPopover data={_notifications} /> */}
                 <AccountPopover
                   data={[
                     {
                       label: 'Home',
-                      href: '/',
+                      href: '/dashboard',
                       icon: <Iconify width={22} icon="solar:home-angle-bold-duotone" />,
                     },
                     {
                       label: 'Profile',
-                      href: '/profile',
+                      href: '/dashboard/profile',
                       icon: <Iconify width={22} icon="solar:shield-keyhole-bold-duotone" />,
                     },
                     {
                       label: 'Settings',
-                      href: '/setting',
+                      href: '/dashboard/setting',
                       icon: <Iconify width={22} icon="solar:settings-bold-duotone" />,
                     },
                   ]}
@@ -118,9 +117,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
           }}
         />
       }
-      sidebarSection={
-        <NavDesktop data={navData} layoutQuery={layoutQuery} workspaces={_workspaces} />
-      }
+      sidebarSection={<NavDesktop data={navData} layoutQuery={layoutQuery} />}
       footerSection={null}
       cssVars={{
         '--layout-nav-vertical-width': '300px',

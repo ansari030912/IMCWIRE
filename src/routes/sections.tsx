@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ReactNode } from 'react';
+
 import Cookies from 'js-cookie';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, useMemo, Suspense } from 'react';
 import { Outlet, Navigate, useRoutes } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+
 import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
 // Lazy-loaded components
 const HomePage = lazy(() => import('src/pages/home'));
-const BlogPage = lazy(() => import('src/pages/blog'));
 const SignInPage = lazy(() => import('src/pages/sign-in'));
 const SignUpPage = lazy(() => import('src/pages/sign-up'));
 const ProductsPage = lazy(() => import('src/pages/products'));
@@ -25,16 +28,21 @@ const CompaniesPage = lazy(() => import('src/pages/companies'));
 const FaqsPage = lazy(() => import('src/pages/faq'));
 const HowItWorkage = lazy(() => import('src/pages/how-it-works'));
 const PressReleasePage = lazy(() => import('src/pages/press-release'));
-// const ProfilePage = lazy(() => import('src/pages/profile'));
 const TransactionPage = lazy(() => import('src/pages/transactions'));
+const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
+const ResetPasswordPage = lazy(() => import('src/pages/reset-password'));
+const ForgotPage = lazy(() => import('src/pages/forgot-password'));
+
+const SettingPage = lazy(() => import('src/pages/setting'));
+const ProfilePage = lazy(() => import('src/pages/profile'));
 const ReportsPage = lazy(() => import('src/pages/reports'));
 const UserPage = lazy(() => import('src/pages/user'));
 const PlanPurchasePage = lazy(() => import('src/pages/plan-purchase'));
 const AddVideosPage = lazy(() => import('src/pages/add-videos'));
 const PlansPage = lazy(() => import('src/pages/plans'));
 const AdminCustomPlanPage = lazy(() => import('src/pages/add-custom-plan'));
-const CustomPlanCheckOutPage = lazy(() => import('src/pages/custom-checkout'));
-
+const AllOrdersAdminPage = lazy(() => import('src/pages/all-orders'));
+const GenerateCustomOrderPage = lazy(() => import('src/pages/custom-order'));
 // Loading fallback
 const renderFallback = (
   <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">
@@ -78,7 +86,7 @@ function PrivateRoute({ children }: RouteGuardProps) {
 // Public Route Guard
 function PublicRoute({ children }: RouteGuardProps) {
   const auth = useAuth();
-  return auth.isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
+  return auth.isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 }
 
 // Get Routes Based on Role
@@ -88,7 +96,6 @@ function useRoutesByRole() {
     return [
       { element: <HomePage />, index: true },
       { path: 'add-press-release', element: <AddPressReleasePage /> },
-      { path: 'reports', element: <ReportsPage /> },
       { path: 'transactions', element: <TransactionPage /> },
       { path: 'press-release', element: <PressReleasePage /> },
       { path: 'faqs', element: <FaqsPage /> },
@@ -98,6 +105,8 @@ function useRoutesByRole() {
       { path: 'add-company', element: <AddCompaniesPage /> },
       { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'plans', element: <PlansPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
@@ -108,30 +117,42 @@ function useRoutesByRole() {
   if (auth.isAdmin) {
     return [
       { element: <HomePage />, index: true },
-      { path: 'press-release', element: <PressReleasePage /> },
-      { path: 'companies', element: <BlogPage /> },
-      { path: 'add-press-release', element: <BlogPage /> },
+      // { path: 'press-release', element: <PressReleasePage /> },
+      { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
+      { path: 'users', element: <UserPage /> },
+      { path: 'all-orders', element: <AllOrdersAdminPage /> },
+      { path: 'add-faqs', element: <AddFaqsPage /> },
+      { path: 'packages', element: <ProductsPage /> },
+      { path: 'add-packages', element: <AddPackagesPage /> },
+      { path: 'companies', element: <CompaniesPage /> },
+      { path: 'add-coupons', element: <AddCuponsPage /> },
+      { path: 'add-videos', element: <AddVideosPage /> },
+      { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
+      {
+        path: 'custom-invoice/:id',
+        element: <CustomPlanCheckOutPage />,
+      },
     ];
   }
 
   if (auth.isSuperAdmin) {
     return [
       { element: <HomePage />, index: true },
-      { path: 'press-release', element: <PressReleasePage /> },
-      { path: 'reports', element: <ReportsPage /> },
+      // { path: 'press-release', element: <PressReleasePage /> },
       { path: 'all-transactions', element: <AllTransactionsAdminPage /> },
-      { path: 'faqs', element: <FaqsPage /> },
+      { path: 'all-orders', element: <AllOrdersAdminPage /> },
       { path: 'add-faqs', element: <AddFaqsPage /> },
-      { path: 'how-it-works', element: <HowItWorkage /> },
-      { path: 'packages', element: <ProductsPage /> },
       { path: 'add-packages', element: <AddPackagesPage /> },
       { path: 'companies', element: <CompaniesPage /> },
       { path: 'add-coupons', element: <AddCuponsPage /> },
       { path: 'users', element: <UserPage /> },
-      { path: 'purchase/:id', element: <PlanPurchasePage /> },
       { path: 'add-videos', element: <AddVideosPage /> },
-      { path: 'plans', element: <PlansPage /> },
       { path: 'add-custom-invoice', element: <AdminCustomPlanPage /> },
+      { path: 'setting', element: <SettingPage /> },
+      { path: 'profile', element: <ProfilePage /> },
+      { path: 'custom-order', element: <GenerateCustomOrderPage /> },
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
@@ -149,7 +170,7 @@ export function Router() {
 
   return useRoutes([
     {
-      path: '/',
+      path: '/dashboard',
       element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>
@@ -179,6 +200,26 @@ export function Router() {
         <PublicRoute>
           <AuthLayout>
             <SignUpPage />
+          </AuthLayout>
+        </PublicRoute>
+      ),
+    },
+    {
+      path: 'forgot-password',
+      element: (
+        <PublicRoute>
+          <AuthLayout>
+            <ForgotPage />
+          </AuthLayout>
+        </PublicRoute>
+      ),
+    },
+    {
+      path: 'reset-password',
+      element: (
+        <PublicRoute>
+          <AuthLayout>
+            <ResetPasswordPage />
           </AuthLayout>
         </PublicRoute>
       ),

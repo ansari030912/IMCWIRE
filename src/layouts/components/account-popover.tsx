@@ -1,7 +1,7 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
 
 import Cookies from 'js-cookie';
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -32,6 +32,20 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const router = useRouter();
   const pathname = usePathname();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  // Fetch user from cookies
+  useEffect(() => {
+    const userCookie = Cookies.get('user');
+    if (userCookie) {
+      try {
+        const parsedUser = JSON.parse(decodeURIComponent(userCookie));
+        setUser({ name: parsedUser.name, email: parsedUser.email });
+      } catch (error) {
+        console.error('Failed to parse user cookie:', error);
+      }
+    }
+  }, []);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -50,10 +64,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   );
 
   const handleLogout = () => {
-    // Remove user authentication cookies
     Cookies.remove('user');
-    
-    // Redirect to login page
     router.push('/login');
   };
 
@@ -90,11 +101,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {_myAccount?.displayName}
+            {user ? user.name : 'Guest'}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {_myAccount?.email}
+            {user ? user.email : 'Not logged in'}
           </Typography>
         </Box>
 

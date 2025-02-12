@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { BlogView } from 'src/sections/blog/view';
+import PressReleaseView from 'src/sections/press-release/view/order';
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ export default function Page() {
         <title> {`Press Release - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <BlogView />
+      <PressReleaseView />
     </>
   );
 }

@@ -1,61 +1,54 @@
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
-// Sample transaction data
-const transactions = [
-  {
-    id: '#1006',
-    user: {
-      name: 'John Smith',
-      email: 'john@shuffle.dev',
-      avatar:
-        'https://images.unsplash.com/photo-1559893088-c0787ebfc084?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-    },
-    joined: '09/04/2021',
-    status: 'Paid',
-    purchased: 'Monthly Subscription',
-  },
-  {
-    id: '#1007',
-    user: {
-      name: 'Emily Davis',
-      email: 'emily@shuffle.dev',
-      avatar:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-    },
-    joined: '12/08/2021',
-    status: 'Pending',
-    purchased: 'Annual Subscription',
-  },
-  {
-    id: '#1008',
-    user: {
-      name: 'Emily Davis',
-      email: 'emily@shuffle.dev',
-      avatar:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-    },
-    joined: '12/08/2021',
-    status: 'Reject',
-    purchased: 'Annual Subscription',
-  },
-  {
-    id: '#1009',
-    user: {
-      name: 'Emily Davis',
-      email: 'emily@shuffle.dev',
-      avatar:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-    },
-    joined: '12/08/2021',
-    status: 'Not Paid',
-    purchased: 'Annual Subscription',
-  },
-  // Add more data as needed
-];
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
+interface Transaction {
+  id: number;
+  transaction_id: string;
+  receipt_email: string;
+  amount: string;
+  currency: string;
+  payment_status: string;
+  payment_method: string;
+  created_at: string;
+}
 export function AdminTransaction() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const user = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
+        if (user && user.token && user.message === 'Login successful' && user.isActive) {
+          const { token } = user;
+          const response = await axios.get(`${BASE_URL}/v1/payment/all`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': X_API_KEY,
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.data.success) {
+            setTransactions(response.data.payments);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
   return (
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={5}>
@@ -63,55 +56,50 @@ export function AdminTransaction() {
           Transaction History
         </Typography>
       </Box>
-      <section >
+      <section>
         <div className="container mx-auto">
           <div className="p-6 mb-6 bg-white shadow rounded overflow-x-auto">
-            <table className="table-auto w-full">
-              <thead className=''>
-                <tr className="text-xs text-gray-500 text-left">
-                  {/* <th className="pl-6 pb-3 font-medium">Customer ID</th> */}
-                  <th className="pb-3 font-medium">Name / Email</th>
-                  <th className="pb-3 font-medium">Joined</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Purchased</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction, index) => (
-                  <tr
-                    key={transaction.id}
-                    className={`text-xs ${index % 2 === 0 ? 'bg-gray-50' : ''}`}
-                  >
-                    {/* <td className="py-5 px-6 font-medium">{transaction.id}</td> */}
-                    <td className="flex px-4 py-3 mr-8">
-                      <img
-                        className="w-8 h-8 mr-4 object-cover rounded-md"
-                        src={transaction.user.avatar}
-                        alt={transaction.user.name}
-                      />
-                      <div>
-                        <p className="font-medium">{transaction.user.name}</p>
-                        <p className="text-gray-500">{transaction.user.email}</p>
-                      </div>
-                    </td>
-                    <td className="font-medium mr-4 text-nowrap">{transaction.joined}</td>
-                    <td className=''>
-                      <span
-                        className={`inline-block py-1 px-2 text-white mx-4 text-nowrap ${transaction.status === 'Paid' ? 'bg-green-500' : transaction.status === 'Reject' ? 'bg-red-500' : transaction.status === 'Not Paid' ? 'bg-gray-500' : 'bg-yellow-500'} rounded-full`}
-                      >
-                        {transaction.status}
-                      </span>
-                    </td>
-                    <td className='mr-4'>
-                      <span className="inline-block py-1 text-nowrap px-2 text-purple-500 bg-purple-50 rounded-full">
-                        {transaction.purchased}
-                      </span>
-                    </td>
-                    
+            {loading ? (
+              <p>Loading transactions...</p>
+            ) : (
+              <table className="table-auto w-full">
+                <thead>
+                  <tr className="text-xs text-gray-500 text-left">
+                    <th className="pb-3 font-medium">Transaction ID</th>
+                    <th className="pb-3 font-medium">Email</th>
+                    <th className="pb-3 font-medium">Amount</th>
+                    <th className="pb-3 font-medium">Currency</th>
+                    <th className="pb-3 font-medium">Status</th>
+                    <th className="pb-3 font-medium">Method</th>
+                    <th className="pb-3 font-medium">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {transactions.map((transaction, index) => (
+                    <tr
+                      key={transaction.id}
+                      className={`text-xs ${index % 2 === 0 ? 'bg-gray-50' : ''}`}
+                    >
+                      <td className="py-3 px-4 font-medium">#{transaction.transaction_id}</td>
+                      <td className="py-3 px-4">{transaction.receipt_email}</td>
+                      <td className="py-3 px-4">${transaction.amount}</td>
+                      <td className="py-3 px-4">{transaction.currency}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`inline-block py-1 px-2 text-white rounded-full ${transaction.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
+                        >
+                          {transaction.payment_status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">{transaction.payment_method}</td>
+                      <td className="py-3 px-4">
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </section>

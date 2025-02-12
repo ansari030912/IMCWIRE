@@ -48,7 +48,7 @@ const DahboardVideos = () => {
         </Alert>
       ) : (
         <Grid container spacing={3}>
-          {videos?.map((video, index) => (
+          {videos?.slice(0, 3).map((video, index) => (
             <Grid item xs={12} md={6} lg={4} key={video.id}>
               <Box
                 sx={{

@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useState, useEffect } from 'react';
 
-import { Alert, Box, Button, Grid, IconButton, MenuItem, Snackbar, TextField } from '@mui/material';
+import { Box, Grid, Alert, Button, MenuItem, Snackbar, TextField } from '@mui/material';
 
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
@@ -121,7 +121,7 @@ const AddPlanView = () => {
     if (
       !newPlan.priceSingle.trim() ||
       Number(newPlan.priceSingle) <= 0 ||
-      Number(newPlan.priceSingle) > 1000
+      Number(newPlan.priceSingle) > 100000
     ) {
       setSnackbar({
         open: true,
@@ -210,7 +210,7 @@ const AddPlanView = () => {
 
     // Restrict invalid values (negative numbers, out-of-range)
     if (name === 'numberOfPR' && (numValue > 20 || numValue < 1)) return;
-    if (name === 'priceSingle' && (numValue > 1000 || numValue < 1)) return;
+    if (name === 'priceSingle' && (numValue > 100000 || numValue < 1)) return;
 
     // Update state and calculate total price dynamically
     setNewPlan((prev) => {
@@ -381,7 +381,7 @@ const AddPlanView = () => {
             type="number"
             value={newPlan.priceSingle}
             onChange={handleInputChange}
-            inputProps={{ min: 1, max: 1000 }} // Restrict max input to 1000
+            inputProps={{ min: 1, max: 100000 }} // Restrict max input to 1000
           />
           <br />
           <br />

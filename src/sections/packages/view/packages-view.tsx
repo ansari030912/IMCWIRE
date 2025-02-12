@@ -6,7 +6,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import {
   Box,
@@ -24,6 +24,8 @@ import {
   FormControl,
   FormControlLabel,
 } from '@mui/material';
+
+import { useRouter } from 'src/routes/hooks';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -81,6 +83,10 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const [basePlanPrice, setBasePlanPrice] = useState(0);
+  const [planType, setPlanType] = useState<string>(''); // Stores the plan type ("package" or "product")
+  const [discount, setDiscount] = useState<number>(0); // Stores the discount amount
+  const [planId, setPlanId] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -93,12 +99,15 @@ export function PackagesView({ id }: { id: string | undefined }) {
         });
 
         if (response.status === 200) {
-          // Save user in cookies for 1 day
-          setBasePlanPrice(Number(response.data.totalPlanPrice));
+          const planData = response.data;
+          setPlanType(planData.type); // ✅ Store plan type in state
+          setBasePlanPrice(Number(planData.totalPlanPrice)); // Store base price
+          setPlanId(planData.id);
         }
       } catch (error) {
-        setErrorMessage('Login failed. Please try again.');
-        console.error('Error during login:', error);
+        setErrorMessage('Not a valid plan. Please try again.');
+        router.push('/plans');
+        console.error('Error fetching plan:', error);
       }
     };
 
@@ -273,7 +282,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
             'Content-Type': 'application/json',
           },
         });
-        setIpAddress(response.data.ip);
+        setIpAddress(response?.data.ip);
       } catch (error) {
         console.error('Error fetching IP:', error);
       }
@@ -382,41 +391,64 @@ export function PackagesView({ id }: { id: string | undefined }) {
       return;
     }
 
+    if (!planId || !loggedInUser) {
+      showSnackbar('Error: Missing plan details. Please refresh and try again.', 'error');
+      return;
+    }
+
     try {
-      // Build payload
       const prType = uploadChoice === 'write' ? 'IMCWire Written' : 'Self-Written';
-      const paymentStatus = 'unpaid'; // or "pending"
+      const paymentStatus = 'unpaid';
 
-      // We'll create arrays from our selection
-      const targetCountries = selectedCountries.map((c, idx) => {
-        const baseCountryPrice = idx === 0 ? 0 : 40;
-        const translationPrice = c.translation ? 20 : 0;
-        return {
-          name: c.name.trim(),
-          price: baseCountryPrice,
-          translationRequired: c.translation ? 'Yes' : 'No',
-          translationPrice,
-        };
-      });
-      const industryCategories = selectedCategories.map((cat, idx) => ({
-        name: cat,
-        price: idx === 0 ? 0 : 40,
-      }));
+      // ✅ Ensure discount applies **only** to "product" plans, NOT "package"
+      const isProduct = planType === 'product';
+      const totalPlanPrice =
+        basePlanPrice +
+        additionalCategoriesCost +
+        additionalCountriesCost +
+        totalTranslationCost +
+        writeCost;
+      // ✅ Shows the total plan price before applying any discount.
 
-      const total_price = Number(finalTotal.toFixed(2));
+      const discountedBasePrice = Math.max(0, basePlanPrice - discount);
+      // ✅ Applies discount only to base plan price (not additional costs).
+
+      const total_price =
+        discountedBasePrice +
+        additionalCategoriesCost +
+        additionalCountriesCost +
+        totalTranslationCost +
+        writeCost;
+      // ✅ Final total after applying discount.
+
+      const additionalCosts =
+        additionalCategoriesCost + additionalCountriesCost + totalTranslationCost + writeCost;
+
+      // const total_price = Math.max(0, discountedPlanPrice + additionalCosts);
 
       const payload = {
-        plan_id: id,
+        plan_id: planId,
         prType,
         pr_status: 'Pending',
         payment_method: paymentMethod,
-        targetCountries,
-        industryCategories,
+        targetCountries: selectedCountries.map((c, idx) => ({
+          name: c.name.trim(),
+          price: idx === 0 ? 0 : 40,
+          translationRequired: c.translation ? 'Yes' : 'No',
+          translationPrice: c.translation ? 20 : 0,
+        })),
+        industryCategories: selectedCategories.map((cat, idx) => ({
+          name: cat,
+          price: idx === 0 ? 0 : 40,
+        })),
+        totalPlanPrice,
         total_price,
+        additionalCosts,
         payment_status: paymentStatus,
+        ip_address: ipAddress,
       };
 
-      // Make request
+      // API call
       const token = loggedInUser?.token || '';
       const resp = await axios.post(`${BASE_URL}/v1/pr/submit-order`, payload, {
         headers: {
@@ -425,16 +457,10 @@ export function PackagesView({ id }: { id: string | undefined }) {
         },
       });
 
-      if (resp.data.message === 'PR submitted successfully') {
-        showSnackbar('PR submitted successfully! Redirecting...', 'success');
-        const { paymentUrl } = resp.data;
-        // Wait 3s
-        setTimeout(() => {
-          window.location.href = paymentUrl;
-        }, 3000);
-      } else {
-        showSnackbar('Failed to submit PR. Please try again.', 'error');
-      }
+      showSnackbar('PR submitted successfully! Redirecting...', 'success');
+      setTimeout(() => {
+        window.location.href = resp.data.paymentUrl;
+      }, 3000);
     } catch (error) {
       console.error(error);
       showSnackbar('Checkout failed. Please try again.', 'error');
@@ -906,7 +932,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
           </button>
           <button
             onClick={handleCheckout}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer cursor-pointer"
+            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
           >
             Checkout
           </button>
@@ -920,14 +946,311 @@ export function PackagesView({ id }: { id: string | undefined }) {
   // ------------------------------------------------------------------------------
   return (
     <DashboardContent>
-      {/* Title */}
-      <Box display="flex" alignItems="center" mb={5}>
-        <Typography variant="h4" flexGrow={1} sx={{ pl: 3 }}>
-          Packages
-        </Typography>
-      </Box>
+      {basePlanPrice === 0 ? (
+        ''
+      ) : (
+        <>
+          <Box display="flex" alignItems="center" mb={5}>
+            <Typography variant="h4" flexGrow={1} sx={{ pl: 3 }}>
+              Packages
+            </Typography>
+          </Box>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={4000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
+          <Box>
+            <Grid container spacing={2}>
+              {/* STEP TIMELINE */}
+              <Grid item lg={6} xl={3}>
+                <div className="container mx-auto p-6">
+                  <h1 className="text-2xl font-bold mb-8">Your campaign starts here</h1>
 
-      {/* Snackbar */}
+                  <div className="grid grid-cols-1 gap-8">
+                    <div>
+                      <div className="relative">
+                        {steps.map((step, index) => (
+                          <div key={step.id} className="flex items-start mb-8 relative">
+                            {/* Vertical Line */}
+                            {index !== steps.length - 1 && (
+                              <div
+                                className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%+16px)] transition-colors duration-300
+                              ${currentStep > step.id ? 'bg-purple-800' : 'bg-gray-200'}`}
+                              />
+                            )}
+                            {/* Circle + Text */}
+                            <div className="flex items-center gap-3 relative z-10">
+                              <div
+                                className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-300
+                              ${
+                                step.id === currentStep
+                                  ? 'border-purple-600 bg-white'
+                                  : step.id < currentStep
+                                    ? 'border-purple-600 bg-purple-800'
+                                    : 'border-gray-300 bg-white'
+                              }`}
+                              >
+                                {step.id === currentStep && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-purple-800" />
+                                )}
+                              </div>
+                              <span
+                                className={`text-xs font-medium transition-colors duration-300
+                              ${step.id === currentStep ? 'text-purple-600' : 'text-gray-500'}`}
+                              >
+                                {step.name}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Grid>
+
+              {/* MAIN CONTENT by step */}
+              <Grid item lg={6} xl={5} className="w-full">
+                {currentStep === 1 && renderStepOne()}
+                {currentStep === 2 && renderStepTwo()}
+
+                {/* If user is logged in, step 3 => Checkout */}
+                {isAuthenticated && currentStep === 3 && renderCheckout()}
+
+                {/* If user is NOT logged in, step 3 => Register/Login, step 4 => Checkout */}
+                {!isAuthenticated && (
+                  <>
+                    {currentStep === 3 && renderRegisterOrLogin()}
+                    {currentStep === 4 && renderCheckout()}
+                  </>
+                )}
+              </Grid>
+
+              {/* SIDE CARD (Price Summary) */}
+              {/* SIDE CARD (Order Summary with Coupon Code) */}
+              <Grid item lg={6} xl={4} className="w-full">
+                <OrderSummary
+                  basePlanPrice={basePlanPrice}
+                  additionalCategoriesCost={additionalCategoriesCost}
+                  additionalCountriesCost={additionalCountriesCost}
+                  totalTranslationCost={totalTranslationCost}
+                  writeCost={writeCost}
+                  planType={planType}
+                  discount={discount} // ✅ Pass discount
+                  setDiscount={setDiscount} // ✅ Allow setting discount from OrderSummary
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </>
+      )}
+    </DashboardContent>
+  );
+}
+
+function OrderSummary({
+  basePlanPrice,
+  additionalCategoriesCost,
+  additionalCountriesCost,
+  totalTranslationCost,
+  writeCost,
+  planType,
+  discount,
+  setDiscount, // ✅ Receive setDiscount
+}: {
+  basePlanPrice: number;
+  additionalCategoriesCost: number;
+  additionalCountriesCost: number;
+  totalTranslationCost: number;
+  writeCost: number;
+  planType: string;
+  discount: number;
+  setDiscount: React.Dispatch<React.SetStateAction<number>>; // ✅ Allow updating discount
+}) {
+  const [couponCode, setCouponCode] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isCouponApplied, setIsCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
+
+  function showSnackbar(message: string, severity: 'error' | 'success' = 'error') {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  }
+
+  function handleCloseSnackbar() {
+    setSnackbarOpen(false);
+  }
+
+  function handleCouponChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setCouponCode(e.target.value.replace(/\s+/g, ''));
+    setCouponError('');
+  }
+
+  async function handleApplyCoupon() {
+    if (!couponCode.trim()) {
+      setCouponError('Coupon code cannot be empty.');
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    setCouponError('');
+
+    try {
+      const response = await axios.get(`${BASE_URL}/v1/coupon/validate?couponCode=${couponCode}`, {
+        headers: {
+          'x-api-key': X_API_KEY,
+        },
+      });
+
+      if (response.data.status === 'active') {
+        const discountAmount = (basePlanPrice * parseFloat(response.data.discountPercentage)) / 100;
+
+        // ✅ Coupons only apply to "package" plans, NOT "product" plans
+        if (planType === 'package') {
+          setDiscount(discountAmount);
+          setIsCouponApplied(true);
+          showSnackbar(`Coupon applied! You saved $${discountAmount.toFixed(2)}.`, 'success');
+        } else {
+          setCouponError('Coupons can only be applied to package plans.');
+          setDiscount(0);
+        }
+      } else {
+        setCouponError('Invalid or expired coupon.');
+        setDiscount(0);
+      }
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      setCouponError('Invalid coupon code or expired.');
+      setDiscount(0);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setDiscount(0);
+    setCouponCode('');
+    setIsCouponApplied(false);
+    showSnackbar('Coupon removed. Full price restored.', 'success');
+  }
+
+  const totalBeforeDiscount = useMemo(
+    () =>
+      basePlanPrice +
+      additionalCategoriesCost +
+      additionalCountriesCost +
+      totalTranslationCost +
+      writeCost,
+    [
+      basePlanPrice,
+      additionalCategoriesCost,
+      additionalCountriesCost,
+      totalTranslationCost,
+      writeCost,
+    ]
+  );
+
+  // ✅ Apply discount only to basePlanPrice, not additional costs
+  const discountedPlanPrice =
+    planType === 'package' ? Math.max(0, basePlanPrice - discount) : basePlanPrice;
+  const finalTotal =
+    discountedPlanPrice +
+    additionalCategoriesCost +
+    additionalCountriesCost +
+    totalTranslationCost +
+    writeCost;
+
+  return (
+    <Card className="p-6 w-full">
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Order Summary
+      </Typography>
+
+      {/* Show Coupon Field ONLY if Plan Type is "package" */}
+      {planType === 'package' && !isCouponApplied && (
+        <div className="mb-4">
+          <TextField
+            label="Enter Coupon Code"
+            variant="outlined"
+            value={couponCode}
+            onChange={handleCouponChange}
+            fullWidth
+            error={!!couponError}
+            helperText={couponError}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleApplyCoupon}
+            disabled={isApplyingCoupon}
+            sx={{ mt: 2, width: '100%' }}
+          >
+            {isApplyingCoupon ? 'Applying...' : 'Apply'}
+          </Button>
+        </div>
+      )}
+
+      {/* Show Applied Coupon (if any) */}
+      {isCouponApplied && (
+        <div className="flex items-center justify-between mb-4 bg-green-100 p-2 rounded">
+          <Typography variant="body1" color="success">
+            Coupon &quot;{couponCode}&quot; applied!
+          </Typography>
+          <Button variant="outlined" color="error" onClick={handleRemoveCoupon}>
+            Remove
+          </Button>
+        </div>
+      )}
+
+      <div className="border-t pt-4 mt-4 text-sm space-y-2">
+        <div className="bg-gray-100 p-2 flex justify-between">
+          <span className="text-gray-500 font-bold">Base Plan:</span>
+          <span className="text-gray-700 font-bold">${basePlanPrice}</span>
+        </div>
+
+        <div className="bg-white p-2 flex justify-between">
+          <span className="text-gray-700 font-bold">Additional Categories:</span>
+          <span className="font-bold text-red-500">+${additionalCategoriesCost}</span>
+        </div>
+
+        <div className="bg-gray-100 p-2 flex justify-between">
+          <span className="text-gray-500 font-bold">Additional Countries:</span>
+          <span className="font-bold text-red-500">+${additionalCountriesCost}</span>
+        </div>
+
+        <div className="bg-white p-2 flex justify-between">
+          <span className="text-gray-700 font-bold">Translations:</span>
+          <span className="font-bold text-red-500">+${totalTranslationCost}</span>
+        </div>
+
+        <div className="bg-gray-100 p-2 flex justify-between">
+          <span className="text-gray-500 font-bold">Write & Publication:</span>
+          <span className="font-bold text-red-500">+${writeCost}</span>
+        </div>
+
+        {discount > 0 && (
+          <div className="bg-white p-2 flex justify-between text-green-600 font-bold">
+            <span>Discount Applied:</span>
+            <span>- ${discount.toFixed(2)}</span>
+          </div>
+        )}
+
+        <div className="bg-gray-100 p-2 flex justify-between font-bold">
+          <span className="text-gray-700 text-xl font-bold">Total:</span>
+          <span className="text-purple-600 text-xl font-bold">${finalTotal.toFixed(2)}</span>
+        </div>
+      </div>
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
@@ -938,137 +1261,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
-      {/* Content */}
-      <Box>
-        <Grid container spacing={2}>
-          {/* STEP TIMELINE */}
-          <Grid item lg={6} xl={3}>
-            <div className="container mx-auto p-6">
-              <h1 className="text-2xl font-bold mb-8">Your campaign starts here</h1>
-
-              <div className="grid grid-cols-1 gap-8">
-                <div>
-                  <div className="relative">
-                    {steps.map((step, index) => (
-                      <div key={step.id} className="flex items-start mb-8 relative">
-                        {/* Vertical Line */}
-                        {index !== steps.length - 1 && (
-                          <div
-                            className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%+16px)] transition-colors duration-300
-                              ${currentStep > step.id ? 'bg-purple-800' : 'bg-gray-200'}`}
-                          />
-                        )}
-                        {/* Circle + Text */}
-                        <div className="flex items-center gap-3 relative z-10">
-                          <div
-                            className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-300
-                              ${
-                                step.id === currentStep
-                                  ? 'border-purple-600 bg-white'
-                                  : step.id < currentStep
-                                    ? 'border-purple-600 bg-purple-800'
-                                    : 'border-gray-300 bg-white'
-                              }`}
-                          >
-                            {step.id === currentStep && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-purple-800" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-xs font-medium transition-colors duration-300
-                              ${step.id === currentStep ? 'text-purple-600' : 'text-gray-500'}`}
-                          >
-                            {step.name}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Grid>
-
-          {/* MAIN CONTENT by step */}
-          <Grid item lg={6} xl={5} className="w-full">
-            {currentStep === 1 && renderStepOne()}
-            {currentStep === 2 && renderStepTwo()}
-
-            {/* If user is logged in, step 3 => Checkout */}
-            {isAuthenticated && currentStep === 3 && renderCheckout()}
-
-            {/* If user is NOT logged in, step 3 => Register/Login, step 4 => Checkout */}
-            {!isAuthenticated && (
-              <>
-                {currentStep === 3 && renderRegisterOrLogin()}
-                {currentStep === 4 && renderCheckout()}
-              </>
-            )}
-          </Grid>
-
-          {/* SIDE CARD (Price Summary) */}
-          <Grid item lg={6} xl={4} className="w-full">
-            <Card className="p-6 w-full">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <div className="border-t pt-4 mt-4 text-sm space-y-2">
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Base Plan:</span>
-                  <span className="text-gray-700 font-bold">${basePlanPrice}</span>
-                </div>
-
-                <div className="bg-white p-2 flex justify-between">
-                  <span className="text-gray-700 font-bold">Additional Categories:</span>
-                  <span
-                    className={`font-bold ${
-                      additionalCategoriesCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${additionalCategoriesCost}
-                  </span>
-                </div>
-
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Additional Countries:</span>
-                  <span
-                    className={`font-bold ${
-                      additionalCountriesCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${additionalCountriesCost}
-                  </span>
-                </div>
-
-                <div className="bg-white p-2 flex justify-between">
-                  <span className="text-gray-700 font-bold">Translations:</span>
-                  <span
-                    className={`font-bold ${
-                      totalTranslationCost === 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
-                  >
-                    +${totalTranslationCost}
-                  </span>
-                </div>
-
-                {/* Show the $120 if user selected "write" */}
-                <div className="bg-gray-100 p-2 flex justify-between">
-                  <span className="text-gray-500 font-bold">Write & Publication:</span>
-                  <span
-                    className={`font-bold ${writeCost > 0 ? 'text-red-500' : 'text-green-500'}`}
-                  >
-                    +${writeCost}
-                  </span>
-                </div>
-
-                <div className="bg-white p-2 flex justify-between font-bold">
-                  <span className="text-gray-700 text-xl font-bold">Total:</span>
-                  <span className="text-purple-600 text-xl font-bold">${finalTotal}</span>
-                </div>
-              </div>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-    </DashboardContent>
+    </Card>
   );
 }

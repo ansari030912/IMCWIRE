@@ -129,7 +129,7 @@ const AddCupponView = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || 'Failed to add coupon',
+        message: error.response?.data?.error || 'Failed to add coupon',
         severity: 'error',
       });
     }
@@ -153,10 +153,23 @@ const AddCupponView = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (['discountPercentage', 'plan_id', 'usageLimit'].includes(name) && Number(value) > 100) {
+
+    let sanitizedValue = value;
+
+    // ✅ Prevent spaces in couponCode field
+    if (name === 'couponCode') {
+      sanitizedValue = value.replace(/\s+/g, ''); // Removes all spaces
+    }
+
+    // ✅ Prevent numbers above 100 for specific fields
+    if (
+      ['discountPercentage', 'plan_id', 'usageLimit'].includes(name) &&
+      Number(sanitizedValue) > 100
+    ) {
       return;
     }
-    setNewCoupon({ ...newCoupon, [name]: value });
+
+    setNewCoupon({ ...newCoupon, [name]: sanitizedValue });
   };
 
   return (
@@ -193,7 +206,12 @@ const AddCupponView = () => {
             name="couponCode"
             value={newCoupon.couponCode}
             onChange={handleInputChange}
+            inputProps={{ maxLength: 20, pattern: '^[^\\s]+$' }} // ✅ Prevents spaces in input
+            onKeyDown={(e) => {
+              if (e.key === ' ') e.preventDefault(); // ✅ Prevents space key from working
+            }}
           />
+
           <br />
           <br />
           <TextField
@@ -205,7 +223,7 @@ const AddCupponView = () => {
             value={newCoupon.discountPercentage}
             onChange={handleInputChange}
           />
-          <br />
+          {/* <br />
           <br />
           <TextField
             className="bg-white rounded-lg"
@@ -221,7 +239,7 @@ const AddCupponView = () => {
                 {plan.planName}
               </MenuItem>
             ))}
-          </TextField>
+          </TextField> */}
           <br />
           <br />
           <TextField

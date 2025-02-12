@@ -9,34 +9,38 @@ export const userNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
-      { title: 'Reports', path: '/reports', icon: icon('ic-report') },
-      { title: 'Transactions History', path: '/transactions', icon: icon('ic-trasaction') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
+      // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
+      {
+        title: 'Transactions History',
+        path: '/dashboard/transactions',
+        icon: icon('ic-trasaction'),
+      },
     ],
   },
   {
     title: 'Press Releases',
     items: [
-      { title: 'Press Release', path: '/press-release', icon: icon('ic-press') },
-      { title: 'Add Press Release', path: '/add-press-release', icon: icon('ic-addpress') },
+      { title: 'Press Release', path: '/dashboard/press-release', icon: icon('ic-press') },
+      // { title: 'Add Press Release', path: '/dashboard/add-press-release', icon: icon('ic-addpress') },
     ],
   },
   {
     title: 'Companies',
     items: [
-      { title: 'View Companies', path: '/companies', icon: icon('ic-company') },
-      { title: 'Add Company', path: '/add-company', icon: icon('ic-add-company') },
+      // { title: 'View Companies', path: '/dashboard/companies', icon: icon('ic-company') },
+      { title: 'Companies', path: '/dashboard/add-company', icon: icon('ic-add-company') },
     ],
   },
   {
     title: 'Packages',
-    items: [{ title: 'Packages', path: '/packages', icon: icon('ic-plans') }],
+    items: [{ title: 'Plans', path: '/dashboard/plans', icon: icon('ic-plans') }],
   },
   {
     title: 'Settings',
     items: [
-      { title: 'How It Works', path: '/how-it-works', icon: icon('ic-how-it-work') },
-      { title: "FAQ's", path: '/faqs', icon: icon('ic-faq') },
+      { title: 'How It Works', path: '/dashboard/how-it-works', icon: icon('ic-how-it-work') },
+      { title: "FAQ's", path: '/dashboard/faqs', icon: icon('ic-faq') },
     ],
   },
 ];
@@ -46,77 +50,100 @@ export const adminNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
-      // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
-      // { title: 'Transactions', path: '/transactions', icon: icon('ic-trasaction') },
-    ],
-  },
-  {
-    title: 'Press Releases',
-    items: [
-      { title: 'Press Release', path: '/press-release', icon: icon('ic-press') },
-      { title: 'Add Press Release', path: '/add-press-release', icon: icon('ic-addpress') },
-    ],
-  },
-  {
-    title: 'Companies',
-    items: [
-      { title: 'View Companies', path: '/companies', icon: icon('ic-company') },
-      { title: 'Add Company', path: '/add-company', icon: icon('ic-add-company') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
+      // { title: 'Reports', path: '/dashboard/reports', icon: icon('ic-report') },
+      {
+        title: 'Transactions History',
+        path: '/dashboard/all-transactions',
+        icon: icon('ic-trasaction'),
+      },
+      { title: 'All Orders', path: '/dashboard/all-orders', icon: icon('ic-orders') },
+      // { title: 'All Customers', path: '/dashboard/users', icon: icon('ic-users') },
     ],
   },
   // {
-  //   title: 'Packages',
-  //   items: [{ title: 'Packages', path: '/packages', icon: icon('ic-plans') }],
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/dashboard/press-release', icon: icon('ic-press') }],
+  // },
+  {
+    title: 'Companies',
+    items: [
+      { title: 'View Companies', path: '/dashboard/companies', icon: icon('ic-company') },
+      // { title: 'Add Company', path: '/dashboard/add-company', icon: icon('ic-add-company') },
+    ],
+  },
+  // {
+  //   title: 'Packages & Products',
+  //   items: [{ title: 'Plans', path: '/dashboard/plans', icon: icon('ic-plans') }],
   // },
   // {
   //   title: 'Settings',
   //   items: [
-  //     { title: 'How It Works', path: '/how-it-works', icon: icon('ic-how-it-work') },
-  //     { title: "FAQ's", path: '/faqs', icon: icon('ic-faq') },
+  //     { title: 'How It Works', path: '/dashboard/how-it-works', icon: icon('ic-how-it-work') },
+  //     { title: "FAQ's", path: '/dashboard/faqs', icon: icon('ic-faq') },
   //   ],
   // },
+  {
+    title: 'Add On',
+    items: [
+      { title: 'Add Coupons', path: '/dashboard/add-coupons', icon: icon('ic-add') },
+      { title: 'Add Custom Invoice', path: '/dashboard/add-custom-invoice', icon: icon('ic-add') },
+      { title: 'Add Packages', path: '/dashboard/add-packages', icon: icon('ic-add') },
+      { title: 'Add FAQ', path: '/dashboard/add-faqs', icon: icon('ic-add') },
+      { title: 'Add Videos', path: '/dashboard/add-videos', icon: icon('ic-add') },
+    ],
+  },
 ];
 export const superAdminNavData = [
   {
     title: 'Dashboard',
     items: [
-      { title: 'Dashboard', path: '/', icon: icon('ic-analytics') },
-      // { title: 'Reports', path: '/reports', icon: icon('ic-report') },
-      { title: 'Transactions History', path: '/all-transactions', icon: icon('ic-trasaction') },
-      { title: 'All Customers', path: '/users', icon: icon('ic-users') },
+      { title: 'Dashboard', path: '/dashboard', icon: icon('ic-analytics') },
+      // { title: 'Reports', path: '/dashboard/reports', icon: icon('ic-report') },
+      {
+        title: 'Transactions History',
+        path: '/dashboard/all-transactions',
+        icon: icon('ic-trasaction'),
+      },
+      { title: 'All Customers', path: '/dashboard/users', icon: icon('ic-users') },
+      { title: 'All Orders', path: '/dashboard/all-orders', icon: icon('ic-orders') },
     ],
   },
-  {
-    title: 'Press Releases',
-    items: [{ title: 'Press Release', path: '/press-release', icon: icon('ic-press') }],
-  },
+  // {
+  //   title: 'Press Releases',
+  //   items: [{ title: 'Press Release', path: '/dashboard/press-release', icon: icon('ic-press') }],
+  // },
   {
     title: 'Companies',
     items: [
-      { title: 'View Companies', path: '/companies', icon: icon('ic-company') },
-      // { title: 'Add Company', path: '/add-company', icon: icon('ic-add-company') },
+      { title: 'View Companies', path: '/dashboard/companies', icon: icon('ic-company') },
+      // { title: 'Add Company', path: '/dashboard/add-company', icon: icon('ic-add-company') },
     ],
   },
-  {
-    title: 'Packages & Products',
-    items: [{ title: 'Plans', path: '/plans', icon: icon('ic-plans') }],
-  },
-  {
-    title: 'Settings',
-    items: [
-      { title: 'How It Works', path: '/how-it-works', icon: icon('ic-how-it-work') },
-      { title: "FAQ's", path: '/faqs', icon: icon('ic-faq') },
-    ],
-  },
+  // {
+  //   title: 'Packages & Products',
+  //   items: [{ title: 'Plans', path: '/dashboard/plans', icon: icon('ic-plans') }],
+  // },
+  // {
+  //   title: 'Settings',
+  //   items: [
+  //     { title: 'How It Works', path: '/dashboard/how-it-works', icon: icon('ic-how-it-work') },
+  //     { title: "FAQ's", path: '/dashboard/faqs', icon: icon('ic-faq') },
+  //   ],
+  // },
   {
     title: 'Add On',
     items: [
-      { title: 'Add Coupons', path: '/add-coupons', icon: icon('ic-add') },
-      { title: 'Add Custom Invoice', path: '/add-custom-invoice', icon: icon('ic-add') },
-      { title: 'Add Packages', path: '/add-packages', icon: icon('ic-add') },
-      { title: 'Add FAQ', path: '/add-faqs', icon: icon('ic-add') },
-      { title: 'Add Videos', path: '/add-videos', icon: icon('ic-add') },
+      { title: 'Add Coupons', path: '/dashboard/add-coupons', icon: icon('ic-add') },
+      { title: 'Add Custom Invoice', path: '/dashboard/add-custom-invoice', icon: icon('ic-add') },
+      {
+        title: 'Generate Custom Order',
+        path: '/dashboard/custom-order',
+        icon: icon('ic-add'),
+      },
+      { title: 'Add Packages', path: '/dashboard/add-packages', icon: icon('ic-add') },
+      { title: 'Add FAQ', path: '/dashboard/add-faqs', icon: icon('ic-add') },
+      { title: 'Add Videos', path: '/dashboard/add-videos', icon: icon('ic-add') },
     ],
   },
 ];

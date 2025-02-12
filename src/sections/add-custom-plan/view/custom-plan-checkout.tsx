@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/button-has-type */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -17,17 +18,13 @@ import {
   Checkbox,
   TextField,
   Typography,
-  MenuItem,
   FormControlLabel,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
-interface ICountry {
-  name: string;
-  translation: boolean;
-}
 
 interface ICustomOrder {
   orderId: string;
@@ -37,9 +34,13 @@ interface ICustomOrder {
   total_price: string;
   payment_status: string;
   payment_method: string;
+  prType: string;
   is_active: number;
   created_at: string;
   invoiceUrl: string;
+  discountType: string;
+  discountValue: string;
+  discountAmount: string;
   planData: {
     plan_id: number;
     planName: string;
@@ -222,20 +223,20 @@ export function CustomPlanCheckOutView({ id }: IProps) {
     try {
       // Build payload from custom order data
       const payload = {
-        plan_id: customOrder?.planData.plan_id,
-        prType: customOrder?.orderType === 'Custom' ? 'IMCWire Written' : 'Self-Written',
+        plan_id: customOrder?.planData?.plan_id,
+        prType: customOrder?.prType,
         pr_status: 'Pending',
         payment_method: 'Stripe', // as provided
         ip_address: ipAddress, // Replace with real IP if needed
         targetCountries: customOrder?.targetCountries.map((tc) => ({
-          name: tc.countryName,
-          price: Number(tc.countryPrice),
-          translationRequired: tc.translationValue,
-          translationPrice: tc.translationValue === 'Yes' ? 70.0 : 0.0,
+          name: tc?.countryName,
+          price: Number(tc?.countryPrice),
+          translationRequired: tc?.translationValue,
+          translationPrice: tc?.translationValue === 'Yes' ? 70.0 : 0.0,
         })),
         industryCategories: customOrder?.industryCategories.map((ic) => ({
-          name: ic.categoryName,
-          price: Number(ic.categoryPrice),
+          name: ic?.categoryName,
+          price: Number(ic?.categoryPrice),
         })),
         total_price: Number(customOrder?.total_price),
         payment_status: 'unpaid',
@@ -308,10 +309,10 @@ export function CustomPlanCheckOutView({ id }: IProps) {
           </Box>
           <Box className="flex justify-between" bgcolor="#f0f0f0" p={2} mb={2} borderRadius="4px">
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              Number Of PR:
+              PR Type:
             </Typography>
             <Typography className="text-purple-700 font-bold">
-              <b> {customOrder.planData.numberOfPR}</b>
+              <b> {customOrder.prType}</b>
             </Typography>
           </Box>
           <Box className="flex justify-between" bgcolor="#ffffff" p={2} mb={2} borderRadius="4px">
@@ -322,6 +323,24 @@ export function CustomPlanCheckOutView({ id }: IProps) {
               <b> ${customOrder.planData.priceSingle}</b>
             </Typography>
           </Box>
+          <Box className="flex justify-between" bgcolor="#f0f0f0" p={2} mb={2} borderRadius="4px">
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Number Of PR:
+            </Typography>
+            <Typography className="text-purple-700 font-bold">
+              <b> {customOrder.planData.numberOfPR}</b>
+            </Typography>
+          </Box>
+          {customOrder.planData.type === 'custom-plan' && (
+            <Box className="flex justify-between" bgcolor="#ffffff" p={2} mb={2} borderRadius="4px">
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                Plan Type:
+              </Typography>
+              <Typography className="text-purple-700 font-bold">
+                <b> {customOrder.planData.type === 'custom-plan' && 'Custom Plan Invoice'}</b>
+              </Typography>
+            </Box>
+          )}
           {/* Target Countries */}
           <Box className="flex justify-between" bgcolor="#f0f0f0" p={2} mb={2} borderRadius="4px">
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
@@ -329,11 +348,11 @@ export function CustomPlanCheckOutView({ id }: IProps) {
             </Typography>
             <div>
               {customOrder.targetCountries.map((tc) => (
-                <Box key={tc.id} pl={2} mb={0.5}>
+                <Box key={tc?.id} pl={2} mb={0.5}>
                   <Typography variant="body2" className="text-right">
-                    <span className="text-purple-700 font-bold">{tc.countryName}</span> <br />(
-                    <b>Translation :</b> {tc.translationValue} / <b>Additional Charges :</b> $
-                    {tc.countryPrice} )
+                    <span className="text-purple-700 font-bold">{tc?.countryName}</span> <br />(
+                    <b>Translation :</b> {tc?.translationValue} / <b>Additional Charges :</b> $
+                    {tc?.countryPrice} )
                   </Typography>
                 </Box>
               ))}
@@ -346,14 +365,36 @@ export function CustomPlanCheckOutView({ id }: IProps) {
             </Typography>
             <div>
               {customOrder.industryCategories.map((ic) => (
-                <Box key={ic.id} pl={2} mb={0.5}>
+                <Box key={ic?.id} pl={2} mb={0.5}>
                   <Typography variant="body2" className="text-right">
-                    <span className="text-purple-700 font-bold">{ic.categoryName}</span> <br />(
-                    <b>Additional Charges :</b> ${ic.categoryPrice} )
+                    <span className="text-purple-700 font-bold">{ic?.categoryName}</span> <br />(
+                    <b>Additional Charges :</b> ${ic?.categoryPrice} )
                   </Typography>
                 </Box>
               ))}
             </div>
+          </Box>
+          <Box className="flex justify-between" bgcolor="#f0f0f0" p={2} mb={2} borderRadius="4px">
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Discount Type:
+            </Typography>
+            <Typography className="text-purple-700 font-bold">
+              <b>
+                {' '}
+                {customOrder.discountType === 'percentage'
+                  ? `%${customOrder?.discountValue}`
+                  : `$${customOrder?.discountValue}`}
+              </b>
+            </Typography>
+          </Box>
+          {/* Industry Categories */}
+          <Box className="flex justify-between" bgcolor="#ffffff" p={2} mb={2} borderRadius="4px">
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Disount Amount:
+            </Typography>
+            <Typography className="text-green-600 font-bold">
+              <b> ${customOrder.discountAmount}</b>
+            </Typography>
           </Box>
           <Box className="flex justify-between" bgcolor="#f0f0f0" p={2} mb={2} borderRadius="4px">
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
@@ -363,10 +404,18 @@ export function CustomPlanCheckOutView({ id }: IProps) {
               <b> {customOrder.payment_status === 'unpaid' && 'Unpaid'}</b>
             </Typography>
           </Box>
+          <Box className="flex justify-between" bgcolor="#ffffff" p={2} mb={2} borderRadius="4px">
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Total Plan Price:
+            </Typography>
+            <Typography className="text-red-600 text-2xl font-bold">
+              <b> ${customOrder.planData.totalPlanPrice}</b>
+            </Typography>
+          </Box>
           {/* Invoice URL */}
           <Box className="flex justify-between" bgcolor="#4A316F" p={2} mb={2} borderRadius="4px">
-            <p className="text-xl text-white font-bold">Total Plan Price:</p>
-            <p className="text-xl text-white font-bold">${customOrder.planData.totalPlanPrice}</p>
+            <p className="text-xl text-white font-bold">Total Amount:</p>
+            <p className="text-2xl text-white font-bold">${customOrder.total_price}</p>
           </Box>
           {customOrder.payment_status === 'unpaid' && (
             <Box className="flex justify-end" mt={2}>

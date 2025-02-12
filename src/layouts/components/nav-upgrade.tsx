@@ -35,8 +35,8 @@ export function NavUpgrade({ sx, ...other }: StackProps) {
       />
       <Typography variant="body1" sx={{ color: 'text.secondary', mt: 0.5 }}>
         <Button
-          href="https://material-ui.com/store/items/minimal-dashboard/"
-          target="_blank"
+          href="/plans"
+          // target="_blank"
           variant="contained"
           style={{ backgroundColor: '#482D70' }}
         >
