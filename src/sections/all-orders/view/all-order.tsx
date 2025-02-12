@@ -760,10 +760,15 @@ const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
       setTags([]);
       setNewTag('');
       setPdf(null);
+<<<<<<< HEAD
       setContactName('');
       setPhone('');
 
       // Notify parent if needed and refresh the page
+=======
+
+      // Notify parent if needed
+>>>>>>> 5cce0f821cc5b4705f31d53e87a47a1518b20af9
       if (onSubmissionSuccess) {
         onSubmissionSuccess(null);
         router.refresh();
@@ -1103,14 +1108,65 @@ function OrderDetailDialog({
         {/* Your SVG close icon */}
       </IconButton>
       <DialogContent dividers>
-        <PlanInfoTable order={order} />
+        <Box
+          mb={2}
+          display="flex"
+          alignItems="center"
+          sx={{ border: '1px solid #ccc', borderRadius: 1 }}
+        >
+          <Box flex={1} sx={{ p: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+              Total PRs: {totalPrs}
+            </Typography>
+          </Box>
+          <Box flex={1} sx={{ p: 1, bgcolor: '#f0f0f0', textAlign: 'center' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+              Used: {usedPrs}
+            </Typography>
+          </Box>
+          <Box flex={1} sx={{ p: 1, textAlign: 'right' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+              Left: {leftPrs}
+            </Typography>
+          </Box>
+        </Box>
 
+        <div className="flex justify-between">
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Single PR Details
+          </Typography>
+          <Button
+            variant="text"
+            sx={{ fontWeight: 'bold' }}
+            onClick={() => setShowSinglePRForm((prev) => !prev)}
+          >
+            {showSinglePRForm ? 'Hide Form' : '+ Add Single PR'}
+          </Button>
+        </div>
+        {showSinglePRForm && (
+          <AddSinglePRAccordion
+            order={order}
+            onSubmissionSuccess={(data) => {
+              console.log('Submitted:', data);
+              // Optionally hide the form after a successful submission:
+              setShowSinglePRForm(false);
+            }}
+          />
+        )}
+        {order.singlePRDetails && order.singlePRDetails.length > 0 ? (
+          <SinglePRTable
+            singlePRDetails={order.singlePRDetails}
+            onSinglePRUpdate={onSinglePRUpdate}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No single PR details
+          </Typography>
+        )}
         <Box mt={2}>
           <UpdateEntireOrderStatus order={order} onOrderStatusUpdate={onOrderStatusUpdate} />
         </Box>
-
         <Divider sx={{ my: 2 }} />
-
         {/* Editable Industry Categories Section */}
         {order.industryCategories && order.industryCategories.length > 0 && (
           <Box mb={3}>
@@ -1362,64 +1418,8 @@ function OrderDetailDialog({
             )}
           </Box>
         )}
-
         <Divider sx={{ my: 2 }} />
-
-        <Box
-          mb={2}
-          display="flex"
-          alignItems="center"
-          sx={{ border: '1px solid #ccc', borderRadius: 1 }}
-        >
-          <Box flex={1} sx={{ p: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-              Total PRs: {totalPrs}
-            </Typography>
-          </Box>
-          <Box flex={1} sx={{ p: 1, bgcolor: '#f0f0f0', textAlign: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-              Used: {usedPrs}
-            </Typography>
-          </Box>
-          <Box flex={1} sx={{ p: 1, textAlign: 'right' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-              Left: {leftPrs}
-            </Typography>
-          </Box>
-        </Box>
-
-        <div className="flex justify-between">
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-            Single PR Details
-          </Typography>
-          <Button
-            variant="text"
-            sx={{ fontWeight: 'bold' }}
-            onClick={() => setShowSinglePRForm((prev) => !prev)}
-          >
-            {showSinglePRForm ? 'Hide Form' : '+ Add Single PR'}
-          </Button>
-        </div>
-        {showSinglePRForm && (
-          <AddSinglePRAccordion
-            order={order}
-            onSubmissionSuccess={(data) => {
-              console.log('Submitted:', data);
-              // Optionally hide the form after a successful submission:
-              setShowSinglePRForm(false);
-            }}
-          />
-        )}
-        {order.singlePRDetails && order.singlePRDetails.length > 0 ? (
-          <SinglePRTable
-            singlePRDetails={order.singlePRDetails}
-            onSinglePRUpdate={onSinglePRUpdate}
-          />
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            No single PR details
-          </Typography>
-        )}
+        <PlanInfoTable order={order} />
       </DialogContent>
       <DialogActions>
         <Button variant="contained" color="inherit" onClick={onClose}>
