@@ -56,7 +56,7 @@ function useTable() {
   const [orderBy, setOrderBy] = useState('email');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selected, setSelected] = useState<string[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
 
   const onSort = useCallback(
     (id: string) => {
@@ -135,6 +135,7 @@ function getFieldValue(row: any, orderBy: string): string | number {
   if (orderBy === 'payment_status') return (row.payment_status || '').toLowerCase();
   if (orderBy === 'pr_status') return (row.pr_status || '').toLowerCase();
   if (orderBy === 'total_price') return parseFloat(row.total_price || '0');
+  if (orderBy === 'plan_updated_at') return new Date(row.plan_updated_at).getTime();
   return '';
 }
 
@@ -411,12 +412,13 @@ export function AllOrdersView() {
                   { id: 'payment_status', label: 'Payment Status' },
                   { id: 'pr_status', label: 'PR Status' },
                   { id: 'total_price', label: 'Total Price', align: 'right' },
+                  { id: 'plan_updated_at', label: 'Updated At', align: 'center' },
                 ]}
               />
 
               <TableBody>
                 {dataPage.map((row) => {
-                  // Payment Status => color-coded
+                  // Determine color-coded labels for Payment and PR statuses
                   let payLabel = row.payment_status || '--';
                   let payColor: 'success' | 'warning' | 'error' = 'warning';
                   if (row.payment_status === 'paid') {
@@ -436,7 +438,6 @@ export function AllOrdersView() {
                     payColor = 'error';
                   }
 
-                  // PR Status => color-coded
                   let prColor: 'default' | 'warning' | 'success' | 'error' = 'default';
                   if (row.pr_status === 'Pending') prColor = 'warning';
                   else if (row.pr_status === 'Approved') prColor = 'success';
@@ -456,6 +457,10 @@ export function AllOrdersView() {
                         <Chip label={row.pr_status || '--'} color={prColor} variant="outlined" />
                       </StyledTableCell>
                       <StyledTableCell align="right">${row.total_price}</StyledTableCell>
+                      {/* New column for updated date */}
+                      <StyledTableCell align="center">
+                        {new Date(row.plan_updated_at).toLocaleString()}
+                      </StyledTableCell>
                       <StyledTableCell align="center">
                         <Button variant="outlined" size="small" onClick={() => handleView(row)}>
                           View
@@ -1595,23 +1600,62 @@ type SinglePRTableProps = {
 };
 
 function SinglePRTable({ singlePRDetails, onSinglePRUpdate }: SinglePRTableProps) {
+  // State for pagination: current page and number of rows per page.
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Sort the details by plan_updated_at in descending order (latest on top)
+  const sortedDetails = [...singlePRDetails].sort((a, b) => {
+    const dateA = new Date(a.plan_updated_at);
+    const dateB = new Date(b.plan_updated_at);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  // Calculate the paginated data slice.
+  const paginatedDetails = sortedDetails.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  // Handler for page change.
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Handler for rows per page change.
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
-    <Table size="small" sx={{ mt: 1 }}>
-      <TableHead>
-        <TableRow>
-          <StyledTableHeadCell>PR ID</StyledTableHeadCell>
-          <StyledTableHeadCell>PR Type</StyledTableHeadCell>
-          <StyledTableHeadCell>Status</StyledTableHeadCell>
-          <StyledTableHeadCell>Created At</StyledTableHeadCell>
-          <StyledTableHeadCell>Actions</StyledTableHeadCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {singlePRDetails.map((detail: any) => (
-          <SinglePRRow key={detail.id} detail={detail} onSinglePRUpdate={onSinglePRUpdate} />
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <Table size="small" sx={{ mt: 1 }}>
+        <TableHead>
+          <TableRow>
+            <StyledTableHeadCell>PR ID</StyledTableHeadCell>
+            <StyledTableHeadCell>PR Type</StyledTableHeadCell>
+            <StyledTableHeadCell>Status</StyledTableHeadCell>
+            <StyledTableHeadCell>Created At</StyledTableHeadCell>
+            <StyledTableHeadCell>Actions</StyledTableHeadCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {paginatedDetails.map((detail: any) => (
+            <SinglePRRow key={detail.id} detail={detail} onSinglePRUpdate={onSinglePRUpdate} />
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        component="div"
+        count={sortedDetails.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10]}
+      />
+    </>
   );
 }
 
