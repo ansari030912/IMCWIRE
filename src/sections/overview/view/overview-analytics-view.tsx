@@ -313,8 +313,17 @@ export function OverviewAnalyticsView() {
   useEffect(() => {
     if (token && role) {
       setLoading(true);
+      let salesUrl = '';
+      if (role === 'user') {
+        salesUrl = `${BASE_URL}/v1/pr/user-sales`;
+      } else if (role === 'super_admin' || role === 'admin') {
+        salesUrl = `${BASE_URL}/v1/pr/all-sales`;
+      } else {
+        // Fallback endpoint if role is unknown
+        salesUrl = `${BASE_URL}/v1/pr/user-sales`;
+      }
       axios
-        .get(`${BASE_URL}/v1/pr/all-sales`, {
+        .get(salesUrl, {
           headers: {
             'x-api-key': X_API_KEY,
             Authorization: `Bearer ${token}`,
