@@ -8,6 +8,7 @@ import {
   Box,
   Card,
   Chip,
+  Grid,
   Alert,
   Table,
   Button,
@@ -21,6 +22,7 @@ import {
   TableCell,
   TableHead,
   TextField,
+  Accordion,
   IconButton,
   InputLabel,
   Typography,
@@ -30,10 +32,15 @@ import {
   DialogContent,
   TableContainer,
   TablePagination,
+  AccordionDetails,
+  AccordionSummary,
 } from '@mui/material';
+
+import { useRouter } from 'src/routes/hooks';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
@@ -618,6 +625,283 @@ type OrderDetailDialogProps = {
   onOrderStatusUpdate: (orderId: number, newPrStatus: string, newPaymentStatus: string) => void;
 };
 
+interface AddSinglePRAccordionProps {
+  order: any; // Replace 'any' with your proper type if available
+  onSubmissionSuccess?: (data: any) => void; // Optional callback after a successful submission
+}
+
+const AddSinglePRAccordion: React.FC<AddSinglePRAccordionProps> = ({
+  order,
+  onSubmissionSuccess,
+}) => {
+  // ----- Common Fields -----
+  const [companyName, setCompanyName] = useState('');
+  const [email, setEmail] = useState('');
+  const [address1, setAddress1] = useState('');
+  const [address2, setAddress2] = useState('');
+  const [city, setCity] = useState('');
+  const [stateField, setStateField] = useState('');
+  const [country, setCountry] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+
+  // ----- IMCWire Written Specific Fields -----
+  const [url, setUrl] = useState('');
+  const [tags, setTags] = useState('');
+
+  // ----- Self-Written Specific Field -----
+  const [pdf, setPdf] = useState<File | null>(null);
+
+  // ----- UI and Feedback State -----
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'info' | 'warning'
+  >('success');
+  const router = useRouter();
+  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  // ----- Form Submission Handler -----
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const submitUrl = `${BASE_URL}/v1/pr/superadmin/submit-single-pr`;
+      const userCookie = Cookies.get('user');
+      if (!userCookie) throw new Error('User not authenticated');
+      const { token } = JSON.parse(decodeURIComponent(userCookie));
+
+      if (order.prType === 'IMCWire Written') {
+        // Build the JSON payload
+        const payload = {
+          pr_id: order.id, // Adjust if you use another field as the identifier
+          url,
+          tags: tags
+            .split(',')
+            .map((tag: string) => tag.trim())
+            .filter((tag: string) => tag !== ''),
+          companyName,
+          email,
+          address1,
+          address2,
+          city,
+          state: stateField,
+          country,
+          websiteUrl,
+        };
+
+        await axios.post(submitUrl, payload, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } else if (order.prType === 'Self-Written') {
+        // Build the FormData payload (omit url and tags, include pdf)
+        const formData = new FormData();
+        formData.append('pr_id', order.id);
+        formData.append('companyName', companyName);
+        formData.append('email', email);
+        formData.append('address1', address1);
+        formData.append('address2', address2);
+        formData.append('city', city);
+        formData.append('state', stateField);
+        formData.append('country', country);
+        formData.append('websiteUrl', websiteUrl);
+        if (pdf) {
+          formData.append('pdf', pdf);
+        }
+
+        await axios.post(submitUrl, formData, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+
+      setSnackbarMessage('Single PR submitted successfully.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      // Optionally, clear the form fields:
+      setCompanyName('');
+      setEmail('');
+      setAddress1('');
+      setAddress2('');
+      setCity('');
+      setStateField('');
+      setCountry('');
+      setWebsiteUrl('');
+      setUrl('');
+      setTags('');
+      setPdf(null);
+      
+      // Notify parent if needed
+      if (onSubmissionSuccess){ 
+                onSubmissionSuccess(null)
+                router.refresh()
+              }
+    } catch (error) {
+      console.error('Error submitting single PR:', error);
+      setSnackbarMessage('Failed to submit single PR.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Accordion>
+        {/* <AccordionSummary expandIcon={<Iconify icon="material-symbols:expand-more" width={24} />}>
+          <Typography>Add Single PR</Typography>
+        </AccordionSummary> */}
+        <AccordionDetails>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              {/* Common Fields */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Company Name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Address 1"
+                  value={address1}
+                  onChange={(e) => setAddress1(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Address 2"
+                  value={address2}
+                  onChange={(e) => setAddress2(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="State"
+                  value={stateField}
+                  onChange={(e) => setStateField(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Website URL"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+
+              {/* Conditional Fields based on PR type */}
+              {order.prType === 'IMCWire Written' ? (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="URL"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Tags (comma separated)"
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                </>
+              ) : order.prType === 'Self-Written' ? (
+                <Grid item xs={12}>
+                  <Button variant="outlined" component="label">
+                    Upload PDF
+                    <input
+                      type="file"
+                      hidden
+                      accept="application/pdf"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setPdf(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </Button>
+                  {pdf && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      {pdf.name}
+                    </Typography>
+                  )}
+                </Grid>
+              ) : null}
+            </Grid>
+            <Box mt={2}>
+              <Button type="submit" variant="contained" disabled={loading} fullWidth>
+                {loading ? 'Submitting...' : 'Submit'}
+              </Button>
+            </Box>
+          </form>
+        </AccordionDetails>
+      </Accordion>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </>
+  );
+};
+
 function OrderDetailDialog({
   open,
   onClose,
@@ -634,6 +918,7 @@ function OrderDetailDialog({
   const [localTargetCountries, setLocalTargetCountries] = useState<any[]>(
     order ? order.targetCountries || [] : []
   );
+  const [showSinglePRForm, setShowSinglePRForm] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<
@@ -736,7 +1021,7 @@ function OrderDetailDialog({
       setSnackbarOpen(true);
     }
   };
-
+  // Add a new state for controlling the Add Single PR form visibility
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ fontWeight: 'bold' }}>Order Details</DialogTitle>
@@ -1033,10 +1318,24 @@ function OrderDetailDialog({
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
             Single PR Details
           </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-            + Add Single Pr
-          </Typography>
+          <Button
+            variant="text"
+            sx={{ fontWeight: 'bold' }}
+            onClick={() => setShowSinglePRForm((prev) => !prev)}
+          >
+            {showSinglePRForm ? 'Hide Form' : '+ Add Single PR'}
+          </Button>
         </div>
+        {showSinglePRForm && (
+          <AddSinglePRAccordion
+            order={order}
+            onSubmissionSuccess={(data) => {
+              console.log('Submitted:', data);
+              // Optionally hide the form after a successful submission:
+              setShowSinglePRForm(false);
+            }}
+          />
+        )}
         {order.singlePRDetails && order.singlePRDetails.length > 0 ? (
           <SinglePRTable
             singlePRDetails={order.singlePRDetails}
@@ -1565,7 +1864,7 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: ISinglePRRowProps) {
                     <TableCell>{file.pdf_file}</TableCell>
                     <TableCell>
                       <a
-                        href={file.url}
+                        href={`https://files.imcwire.com/${file.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"
@@ -1595,7 +1894,7 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: ISinglePRRowProps) {
   return (
     <>
       <TableRow>
-        <StyledTableCell>{detail?.pr_id}</StyledTableCell>
+        <StyledTableCell>{detail?.id}</StyledTableCell>
         <StyledTableCell>{detail?.pr_type || '--'}</StyledTableCell>
         <StyledTableCell>
           <Chip label={serverStatus} color={chipColor} variant="outlined" />
