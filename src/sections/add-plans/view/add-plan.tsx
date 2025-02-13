@@ -438,7 +438,7 @@ const AddPlanView = () => {
                             </h2>
                             <div className="flex justify-center mt-4">
                               <div className="bg-green-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
-                                {plan.type}
+                              {plan.type === 'product' ? 'Single Publication' : plan.type}
                               </div>
                             </div>
                           </div>
@@ -464,7 +464,7 @@ const AddPlanView = () => {
                               <li className="flex gap-2 items-center">
                                 ✅{' '}
                                 <p className="text-gray-500">
-                                  Download PDF:{' '}
+                                  Sample link:{' '}
                                   <a
                                     href={plan.pdfLink}
                                     target="_blank"
@@ -576,7 +576,7 @@ const AddPlanView = () => {
                               <li className="flex gap-2 items-center">
                                 ✅{' '}
                                 <p className="text-gray-500">
-                                  Download PDF:{' '}
+                                  Sample link:{' '}
                                   <a
                                     href={plan.pdfLink}
                                     target="_blank"

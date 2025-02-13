@@ -125,7 +125,7 @@ const DashboardPlanView = () => {
                             <li className="flex gap-2 items-center">
                               ✅{' '}
                               <p className="text-gray-500">
-                                Download PDF:{' '}
+                                Sample link:{' '}
                                 <a
                                   href={plan.pdfLink}
                                   target="_blank"
