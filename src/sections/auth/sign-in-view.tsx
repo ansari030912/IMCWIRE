@@ -72,7 +72,7 @@ export function SignInView() {
         setErrorMessage('Invalid credentials or inactive account');
       }
     } catch (error) {
-      setErrorMessage('Login failed. Please try again.');
+      setErrorMessage(error.response.data.message);
       console.error('Error during login:', error);
     } finally {
       setLoading(false);
