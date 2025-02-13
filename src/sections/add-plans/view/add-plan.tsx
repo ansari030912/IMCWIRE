@@ -26,51 +26,51 @@ interface Plan {
 interface CopyUrlButtonProps {
   url: string;
 }
- // eslint-disable-next-line react/prop-types
- export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-  
-    const handleCopy = async () => {
-      try {
-        await navigator.clipboard.writeText(url);
-        setSnackbarOpen(true);
-      } catch (error) {
-        console.error('Failed to copy!', error);
-      }
-    };
-  
-    return (
-      <>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleCopy}
-          sx={{
-            px: 2,
-            py: 1,
-            // mt: 1,
-            width: '100%',
-            // backgroundColor: 'red',
-            // color: 'white',
-            fontWeight: 'bold',
-            // '&:hover': { backgroundColor: 'darkred' },
-          }}
-        >
-          Copy URL
-        </Button>
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={3000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={() => setSnackbarOpen(false)} severity="success">
-            URL copied!
-          </Alert>
-        </Snackbar>
-      </>
-    );
+// eslint-disable-next-line react/prop-types
+export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Failed to copy!', error);
+    }
   };
+
+  return (
+    <>
+      <Button
+        variant="outlined"
+        size="small"
+        onClick={handleCopy}
+        sx={{
+          px: 2,
+          py: 1,
+          // mt: 1,
+          width: '100%',
+          // backgroundColor: 'red',
+          // color: 'white',
+          fontWeight: 'bold',
+          // '&:hover': { backgroundColor: 'darkred' },
+        }}
+      >
+        Copy URL
+      </Button>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success">
+          URL copied!
+        </Alert>
+      </Snackbar>
+    </>
+  );
+};
 const AddPlanView = () => {
   const [plans, setPlans] = useState<Plan[]>(() => []);
   const [token, setToken] = useState<string | null>(null);
@@ -92,7 +92,7 @@ const AddPlanView = () => {
     activate_plan: true,
     type: '',
   });
- 
+
   const types = [
     { id: 1, planName: 'package' },
     { id: 2, planName: 'product' },
@@ -491,7 +491,7 @@ const AddPlanView = () => {
                             </h2>
                             <div className="flex justify-center mt-4">
                               <div className="bg-green-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
-                              {plan.type === 'product' ? 'Single Publication' : plan.type}
+                                {plan.type === 'product' ? 'Single Publication' : plan.type}
                               </div>
                             </div>
                           </div>
@@ -572,12 +572,13 @@ const AddPlanView = () => {
                                 Copy URL
                               </button>
                             </div> */}
-                           {isSuperAdmin && (
-  <Box sx={{ px: 3, pb: 2 }}>
-    <CopyUrlButton url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`} />
-  </Box>
-)}
-
+                          {isSuperAdmin && (
+                            <Box sx={{ px: 3, pb: 2 }}>
+                              <CopyUrlButton
+                                url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`}
+                              />
+                            </Box>
+                          )}
                         </div>
                       </Grid>
                     )
