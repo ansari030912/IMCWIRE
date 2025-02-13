@@ -74,6 +74,7 @@ interface CopyUrlButtonProps {
 const AddPlanView = () => {
   const [plans, setPlans] = useState<Plan[]>(() => []);
   const [token, setToken] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
   const [showForm, setShowForm] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -98,9 +99,14 @@ const AddPlanView = () => {
   ];
   useEffect(() => {
     const user = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
-    user?.token && setToken(user.token);
+    if (user?.token) {
+      setToken(user.token);
+    }
+    // Assume the user object has a property "role"
+    if (user?.role === 'super_admin') {
+      setIsSuperAdmin(true);
+    }
   }, []);
-
   const fetchPlans = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/v1/plan/list`, {
@@ -566,9 +572,12 @@ const AddPlanView = () => {
                                 Copy URL
                               </button>
                             </div> */}
-                            <div className='px-6 pb-6'>
-                            <CopyUrlButton url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`} />
-                            </div>
+                           {isSuperAdmin && (
+  <Box sx={{ px: 3, pb: 2 }}>
+    <CopyUrlButton url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`} />
+  </Box>
+)}
+
                         </div>
                       </Grid>
                     )
