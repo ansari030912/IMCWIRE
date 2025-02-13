@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -12,7 +12,14 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
 import { BASE_URL, RECAPTCHA_SITEKEY, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
-import CustomReCAPTCHA from 'src/components/recaptcha/CustomReCAPTCHA';
+
+// Extend the Window interface to include reCAPTCHA types
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoadCallback: () => void;
+  }
+}
 
 export function SignInView() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +29,45 @@ export function SignInView() {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // reCAPTCHA widget element ref and widget ID ref
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<number | null>(null);
+
+  // Render the reCAPTCHA widget only once
+  const renderRecaptcha = () => {
+    if (widgetIdRef.current !== null) return; // Already rendered
+    if (recaptchaRef.current && window.grecaptcha) {
+      const id = window.grecaptcha.render(recaptchaRef.current, {
+        sitekey: RECAPTCHA_SITEKEY,
+        callback: (token: string) => {
+          setRecaptchaToken(token);
+        },
+        'expired-callback': () => {
+          setRecaptchaToken(null);
+        },
+        'error-callback': () => {
+          setRecaptchaToken(null);
+        },
+      });
+      widgetIdRef.current = id;
+    }
+  };
+
+  // Dynamically load the reCAPTCHA script if not already loaded
+  useEffect(() => {
+    if (!window.grecaptcha) {
+      const script = document.createElement('script');
+      script.src =
+        'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoadCallback&render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      window.onRecaptchaLoadCallback = renderRecaptcha;
+    } else {
+      renderRecaptcha();
+    }
+  }, []);
 
   const getIpAddress = async () => {
     try {
@@ -39,9 +85,9 @@ export function SignInView() {
     setLoading(true);
     setErrorMessage('');
 
-    // Check if reCAPTCHA has been completed
+    // Check if the user has completed the captcha
     if (!recaptchaToken) {
-      setErrorMessage('Please complete the reCAPTCHA challenge.');
+      setErrorMessage('Please verify that you are not a robot.');
       setLoading(false);
       return;
     }
@@ -60,7 +106,7 @@ export function SignInView() {
           email,
           password,
           ipAddress,
-          recaptchaToken, // Include the reCAPTCHA token in the payload
+          recaptchaToken, // send the reCAPTCHA token to your backend for verification
         },
         {
           headers: {
@@ -80,10 +126,20 @@ export function SignInView() {
         window.location.reload();
       } else {
         setErrorMessage('Invalid credentials or inactive account');
+        if (window.grecaptcha && widgetIdRef.current !== null) {
+          window.grecaptcha.reset(widgetIdRef.current);
+          setRecaptchaToken(null);
+        }
       }
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || 'An error occurred during login');
+      setErrorMessage(
+        error.response?.data?.message || 'An error occurred during login'
+      );
       console.error('Error during login:', error);
+      if (window.grecaptcha && widgetIdRef.current !== null) {
+        window.grecaptcha.reset(widgetIdRef.current);
+        setRecaptchaToken(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -124,16 +180,12 @@ export function SignInView() {
               </InputAdornment>
             ),
           }}
-          sx={{ mb: 1 }}
+          sx={{ mb: 3 }}
         />
 
-        {/* Custom reCAPTCHA Component */}
-        <Box sx={{ mb: 2, alignSelf: 'center' }}>
-          <CustomReCAPTCHA
-            siteKey={RECAPTCHA_SITEKEY}
-            onChange={(token: string | null) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
+        {/* Google reCAPTCHA Widget */}
+        <Box sx={{ mb: 3, alignSelf: 'right', width: '100%' }}>
+          <div ref={recaptchaRef} />
         </Box>
 
         {errorMessage && (
@@ -142,10 +194,7 @@ export function SignInView() {
           </Typography>
         )}
 
-        <Link
-          to="/forgot-password"
-          style={{ marginBottom: '6px', textDecoration: 'none', color: 'blue' }}
-        >
+        <Link to="/forgot-password" style={{ marginBottom: '6px', textDecoration: 'none', color: 'blue' }}>
           Forgot password?
         </Link>
 
