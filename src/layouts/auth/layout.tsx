@@ -53,7 +53,7 @@ export function AuthLayout({ sx, children, header }: AuthLayoutProps) {
             rightArea: (
               <Link
                 component={RouterLink}
-                href="#"
+                href="https://imcwire.com/contact/"
                 color="inherit"
                 sx={{ typography: 'subtitle2' }}
               >

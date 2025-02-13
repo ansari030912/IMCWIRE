@@ -46,7 +46,7 @@ export function SimpleLayout({ sx, children, header, content }: SimpleLayoutProp
             leftArea: <Logo />,
             rightArea: (
               <Link
-                href="#"
+                href="https://imcwire.com/contact/"
                 component={RouterLink}
                 color="inherit"
                 sx={{ typography: 'subtitle2' }}
