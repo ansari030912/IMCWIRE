@@ -4,7 +4,10 @@ import { useSearchParams, Link } from "react-router-dom";
 const ThankyouStripe = () => {
   // Retrieve query parameters using useSearchParams
   const [searchParams] = useSearchParams();
-  const isValid = searchParams.get("isValid");
+  console.log(searchParams);
+  // Use the correct parameter name that matches the URL ("isvalid")
+  const isValid = searchParams.get("isvalid");
+  console.log(isValid);
 
   return (
     <section>
