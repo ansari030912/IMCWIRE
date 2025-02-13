@@ -102,7 +102,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                     },
                     // {
                     //   label: 'Profile',
-                    //   href: '/dashboard/profile',
+                    //   href: '/profile',
                     //   icon: <Iconify width={22} icon="solar:shield-keyhole-bold-duotone" />,
                     // },
                     {

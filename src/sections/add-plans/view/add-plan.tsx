@@ -298,7 +298,7 @@ const AddPlanView = () => {
           color={showForm ? 'error' : 'inherit'}
           onClick={() => setShowForm(!showForm)}
         >
-          {showForm ? 'Close' : 'Add New Coupon'}
+          {showForm ? 'Close' : 'Add New Plan'}
         </Button>
       </Box>
 

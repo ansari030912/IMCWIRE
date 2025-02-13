@@ -2147,7 +2147,7 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: ISinglePRRowProps) {
                         <TableCell>
                           {detail.reports.pdfFile ? (
                             <a
-                              href={detail.reports.pdfFile.url}
+                              href={`https://dashboard.imcwire.com/${detail.reports.pdfFile.url}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-500 hover:underline"
@@ -2161,7 +2161,7 @@ export function SinglePRRow({ detail, onSinglePRUpdate }: ISinglePRRowProps) {
                         <TableCell>
                           {detail.reports.excelFile ? (
                             <a
-                              href={detail.reports.excelFile.url}
+                              href={`https://dashboard.imcwire.com/${detail.reports.excelFile.url}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-500 hover:underline"
