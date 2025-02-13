@@ -1,21 +1,21 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Checkbox from '@mui/material/Checkbox';
+import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 
 import { Iconify } from 'src/components/iconify';
-import { BASE_URL, RECAPTCHA_SITEKEY, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+import { BASE_URL, X_API_KEY, RECAPTCHA_SITEKEY } from 'src/components/Urls/BaseApiUrls';
 
 // Extend the Window interface to include recaptcha types
 declare global {
