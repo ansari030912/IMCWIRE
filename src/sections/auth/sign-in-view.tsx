@@ -1,7 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+<<<<<<< HEAD
 import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+=======
+import { Link } from 'react-router-dom';
+import { useRef, useState, useEffect, useCallback } from 'react';
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -11,7 +16,19 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
+<<<<<<< HEAD
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+=======
+import { BASE_URL, X_API_KEY, RECAPTCHA_SITEKEY } from 'src/components/Urls/BaseApiUrls';
+
+// Extend the Window interface to include reCAPTCHA types
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoadCallback: () => void;
+  }
+}
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 export function SignInView() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +36,6 @@ export function SignInView() {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const getIpAddress = async () => {
     try {
@@ -71,8 +87,13 @@ export function SignInView() {
       } else {
         setErrorMessage('Invalid credentials or inactive account');
       }
+<<<<<<< HEAD
     } catch (error) {
       setErrorMessage(error.response.data.message);
+=======
+    } catch (error: any) {
+      setErrorMessage(error.response?.data?.message || 'An error occurred during login');
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
       console.error('Error during login:', error);
     } finally {
       setLoading(false);

@@ -1,22 +1,38 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable import/no-extraneous-dependencies */
 import Cookies from 'js-cookie';
+<<<<<<< HEAD
 import { Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+=======
+import { Link, useNavigate } from 'react-router-dom';
+import { useRef, useState, useEffect, useCallback } from 'react';
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Checkbox from '@mui/material/Checkbox';
+import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+<<<<<<< HEAD
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+=======
+import FormControlLabel from '@mui/material/FormControlLabel';
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 import { useRouter } from 'src/routes/hooks';
 import { Iconify } from 'src/components/iconify';
+<<<<<<< HEAD
 import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+=======
+import { BASE_URL, X_API_KEY, RECAPTCHA_SITEKEY } from 'src/components/Urls/BaseApiUrls';
+>>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 // ----------------------------------------------------------------------
 
