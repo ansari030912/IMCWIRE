@@ -584,7 +584,6 @@ function SinglePRDetailsList({
   );
 }
 
-// ------------------ Update Form Component ------------------ //
 /**
  * This component is similar to SinglePrDetailsForm but is used for updating
  * an existing Single PR detail. It pre-fills its fields from the provided prDetail.
