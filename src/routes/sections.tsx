@@ -11,6 +11,8 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
+import ThankyouStripe from 'src/sections/thankyou-stripe/view/thankyoustripe';
+import ThankyouPaypro from 'src/sections/thankyou-paypro/view/thankyoupaypro';
 
 // Lazy-loaded components
 const HomePage = lazy(() => import('src/pages/home'));
@@ -227,13 +229,13 @@ export function Router() {
     { path: '404', element: <Page404 /> },
     { path: '*', element: <Navigate to="/404" replace /> },
     {
-      path: 'dashboard/thankyou',
+      path: 'dashboard/thankyou/:id',
       element: (
         <div>
           <br />
           <br />
           <br />
-          <Page404 />
+          <ThankyouStripe />
         </div>
       ),
     },
@@ -244,7 +246,7 @@ export function Router() {
           <br />
           <br />
           <br />
-          <Page404 />
+          <ThankyouPaypro />
         </div>
       ),
     },

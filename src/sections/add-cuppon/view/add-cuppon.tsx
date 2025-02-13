@@ -164,7 +164,7 @@ const AddCupponView = () => {
     // ✅ Prevent numbers above 100 for specific fields
     if (
       ['discountPercentage', 'plan_id', 'usageLimit'].includes(name) &&
-      Number(sanitizedValue) > 100
+      Number(sanitizedValue) > 1000000
     ) {
       return;
     }
