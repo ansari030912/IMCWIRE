@@ -32,13 +32,8 @@ import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 import AddCompanyForm from './view/AddCompanyForm';
 
-/* ------------------------------------------------------------------
-   1) Types & Interfaces
-   ------------------------------------------------------------------ */
-
 interface SinglePrDetailsFormProps {
   orderId: number;
-  // The PR Type determines if we upload an existing PDF or use IMCWire's writing
   prType: 'IMCWire Written' | 'Self-Written';
   onSuccess?: () => void;
 }
@@ -59,16 +54,12 @@ interface Company {
   updated_at: string;
 }
 
-/* ------------------------------------------------------------------
-   2) Main Component
-   ------------------------------------------------------------------ */
-
 const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
   orderId,
   prType,
   onSuccess,
 }) => {
-  // Authentication & Data
+  // State variables
   const [token, setToken] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -96,7 +87,7 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     }
   }, []);
 
-  // Define a reusable fetchCompanies function using useCallback
+  // Fetch companies from the API
   const fetchCompanies = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -116,16 +107,12 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     }
   }, [token]);
 
-  // Call fetchCompanies on initial load (when token is available)
+  // Initial load of companies
   useEffect(() => {
     fetchCompanies();
   }, [fetchCompanies]);
 
-  /* ----------------------------------------------------------------
-     3) Handlers
-     ---------------------------------------------------------------- */
-
-  // 3.1) Tag Handlers
+  // Tag Handlers
   const handleAddTag = () => {
     const trimmedTag = newTag.trim();
     if (!trimmedTag) return;
@@ -137,24 +124,23 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     setTags((prev) => [...prev, trimmedTag]);
     setNewTag('');
   };
-  
 
   const handleDeleteTag = (tagToDelete: string) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToDelete));
   };
 
-  // 3.2) Company selection
+  // Company selection
   const handleSelectCompany = (event: SelectChangeEvent<string>) => {
     setSelectedCompany(event.target.value);
   };
 
-  // 3.3) File selection for Self-Written PR
+  // File selection for Self-Written PR
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
     setFile(selectedFile);
   };
 
-  // 3.4) Submit final Single PR data
+  // Submit PR details
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!token) return;
@@ -167,7 +153,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
 
     try {
       if (prType === 'IMCWire Written') {
-        // JSON body (IMCWire will create the PR from URL + tags)
         const data = {
           pr_id: orderId,
           company_id: Number(selectedCompany),
@@ -176,7 +161,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
         };
         await axios.post(apiUrl, data, { headers });
       } else {
-        // FormData for Self-Written (PDF upload)
         const formData = new FormData();
         formData.append('pr_id', orderId.toString());
         formData.append('company_id', selectedCompany);
@@ -196,11 +180,11 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     }
   };
 
-  // 3.5) Open/Close "Add Company" Dialog
+  // Open/Close "Add Company" Dialog
   const handleOpenAddCompanyDialog = () => setOpenAddCompanyDialog(true);
   const handleCloseAddCompanyDialog = () => setOpenAddCompanyDialog(false);
 
-  // 3.6) Add new Company from AddCompanyForm
+  // Add new company and update local state immediately
   const handleAddCompany = async (
     newCompanyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>
   ) => {
@@ -220,11 +204,9 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
           Authorization: `Bearer ${token}`,
         },
       });
-      // Instead of just appending the new company to state,
-      // re-fetch the companies list to ensure the select field is fully up-to-date.
-      await fetchCompanies();
-      // Optionally, you can set the selected company to the newly added one:
       const addedCompany: Company = response.data;
+      // Update local state with the new company immediately
+      setCompanies((prevCompanies) => [...prevCompanies, addedCompany]);
       setSelectedCompany(addedCompany.id.toString());
       handleCloseAddCompanyDialog();
       showSnackbar('Company added successfully!', 'success');
@@ -251,12 +233,8 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
     setFile(null);
   };
 
-  /* ----------------------------------------------------------------
-     4) Render
-     ---------------------------------------------------------------- */
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Loading overlay */}
       {loading && (
         <Box
           sx={{
@@ -273,7 +251,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
         </Box>
       )}
       <form onSubmit={handleSubmit}>
-        {/* PR Details: URL & Tags for IMCWire Written, PDF upload for Self-Written */}
         {prType === 'IMCWire Written' ? (
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -295,7 +272,13 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <Button type="button" onClick={handleAddTag} variant="contained" size="small"  disabled={tags.length >= 4}>
+                      <Button
+                        type="button"
+                        onClick={handleAddTag}
+                        variant="contained"
+                        size="small"
+                        disabled={tags.length >= 4}
+                      >
                         Add
                       </Button>
                     </InputAdornment>
@@ -327,7 +310,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
             />
           </Box>
         )}
-        {/* Company Selection */}
         <Box sx={{ mt: 3, display: 'flex', alignContent: 'start', gap: 2 }}>
           <FormControl fullWidth>
             <InputLabel id="company-select-label">Company</InputLabel>
@@ -337,6 +319,8 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
               value={selectedCompany}
               label="Company"
               onChange={handleSelectCompany}
+              // Refresh the companies list each time the dropdown is opened
+              onOpen={fetchCompanies}
             >
               <MenuItem value="" disabled>
                 Select a company
@@ -360,12 +344,10 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
             Add New Company
           </Button>
         </Box>
-        {/* Submit PR Details */}
         <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
           Save PR Details
         </Button>
       </form>
-      {/* Dialog: Add New Company */}
       <Dialog
         open={openAddCompanyDialog}
         onClose={handleCloseAddCompanyDialog}
@@ -390,7 +372,6 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
           <Button onClick={handleCloseAddCompanyDialog}>Cancel</Button>
         </DialogActions>
       </Dialog>
-      {/* Snackbar for feedback */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}

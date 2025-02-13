@@ -200,6 +200,7 @@ const CompaniesView = () => {
           </Button>
         </Box>
 
+<<<<<<< HEAD
         {/* Add Company Form */}
         {showForm && (
           <Paper
@@ -393,9 +394,91 @@ const CompaniesView = () => {
                           </TableCell>
                           <TableCell align="left" className="text-nowrap">
                             <Typography variant="body2">{company.contactName}</Typography>
+=======
+      {/* Loading Indicator */}
+      {loading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '50vh',
+          }}
+        >
+          <CircularProgress size={60} />
+        </Box>
+      ) : companies.length === 0 ? (
+        // No Companies Found Message
+        <Box
+          sx={{
+            p: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Iconify
+            icon="material-symbols:inventory-2-outline"
+            width={64}
+            height={64}
+            color="#ccc"
+          />
+          <Typography variant="h6" sx={{ mt: 2, color: 'text.secondary' }}>
+            No Companies Found
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }} align="center">
+            It looks like you haven&apos;t added any company yet. Use the button above to add a new
+            company.
+          </Typography>
+        </Box>
+      ) : (
+        // Companies Table with Pagination
+        <Paper elevation={2} sx={{ borderRadius: 2 }}>
+          <TableContainer>
+            <Scrollbar>
+              <Table sx={{ minWidth: 800 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Company Info</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Contact Info
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Contact Name
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="left">
+                      Address
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {companies
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((company, index) => (
+                      <TableRow
+                        key={company.id}
+                        sx={{
+                          backgroundColor: index % 2 === 0 ? 'white' : '#F6F7F8',
+                        }}
+                      >
+                        <TableCell component="th" scope="row">
+                          {company.id}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          <Box>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: 600, color: 'primary.main' }}
+                            >
+                              {company.companyName}
+                            </Typography>
+>>>>>>> f40ffeca174d64ca454a85624276b0927dad3663
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                               {company.phone}
                             </Typography>
+<<<<<<< HEAD
                           </TableCell>
                           <TableCell align="left">
                             <Typography variant="body2">{company.email}</Typography>
@@ -429,6 +512,47 @@ const CompaniesView = () => {
         )}
       </Box>
     </DashboardContent>
+=======
+                          </Box>
+                        </TableCell>
+                        <TableCell align="left" className="text-nowrap">
+                          <Typography variant="body2">{company.email}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {company.phone}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="body2">{company.contactName}</Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Box sx={{ pl: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {`${company.address1}, ${company.address2}`}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {`${company.city}, ${company.state}, ${company.country}`}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={companies.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      )}
+    </Box>
+>>>>>>> f40ffeca174d64ca454a85624276b0927dad3663
   );
 };
 

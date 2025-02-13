@@ -1,23 +1,25 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import moment from 'moment';
 import Cookies from 'js-cookie';
-import moment from 'moment'; // for formatting dates
-import {
-  Container,
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Snackbar,
-  Alert,
-  MenuItem,
-  Grid,
-} from '@mui/material';
-import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+import React, { useState, useEffect } from 'react'; // for formatting dates
 // Import Iconify for icons
 import { Icon as Iconify } from '@iconify/react';
+
+import {
+  Box,
+  Grid,
+  Paper,
+  Alert,
+  Button,
+  Snackbar,
+  MenuItem,
+  Container,
+  TextField,
+  Typography,
+} from '@mui/material';
+
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 interface ProfileData {
   full_name: string;
@@ -77,7 +79,7 @@ const ProfilePage = () => {
         },
       });
       // Map the profile data from the response (i.e. response.data.profile)
-      const profile = response.data.profile;
+      const {profile} = response.data;
       // Check if the profile object has any keys
       if (profile && Object.keys(profile).length > 0) {
         setExistingProfile(profile);
