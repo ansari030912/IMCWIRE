@@ -194,8 +194,8 @@ export function Router() {
       element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>
-             {/* Render TawkToScript only if the user is a regular user */}
-          {auth.isUser && <TawkToScript />}
+            {/* Render TawkToScript only if the user is a regular user */}
+            {auth.isUser && <TawkToScript />}
             <Suspense fallback={renderFallback}>
               <Outlet />
             </Suspense>
