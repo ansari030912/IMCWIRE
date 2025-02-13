@@ -13,6 +13,7 @@ import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 import ThankyouStripe from 'src/sections/thankyou-stripe/view/thankyoustripe';
 import ThankyouPaypro from 'src/sections/thankyou-paypro/view/thankyoupaypro';
+import { TawkToScript } from 'src/components/talkto/TawkToScript';
 
 // Lazy-loaded components
 const HomePage = lazy(() => import('src/pages/home'));
@@ -176,6 +177,8 @@ export function Router() {
       element: auth.isAuthenticated ? (
         <PrivateRoute>
           <DashboardLayout>
+             {/* Render TawkToScript only if the user is a regular user */}
+          {auth.isUser && <TawkToScript />}
             <Suspense fallback={renderFallback}>
               <Outlet />
             </Suspense>
