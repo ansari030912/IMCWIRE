@@ -233,7 +233,7 @@ export function Router() {
           <br />
           <br />
           <br />
-          <CustomPlanCheckOutPage />
+          <Page404 />
         </div>
       ),
     },
@@ -244,7 +244,7 @@ export function Router() {
           <br />
           <br />
           <br />
-          <CustomPlanCheckOutPage />
+          <Page404 />
         </div>
       ),
     },
