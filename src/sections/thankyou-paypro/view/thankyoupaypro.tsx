@@ -96,7 +96,11 @@ const ThankyouPaypro: React.FC = () => {
     <section>
       <div className="flex flex-wrap divide-x divide-gray-200">
         <div className="w-full lg:flex-1 px-8">
-          <div className="flex flex-col items-center justify-center px-4 text-center h-screen overflow-y-hidden">
+          <br />
+          <br />
+          <br />
+          <br />
+          <div className="flex flex-col items-center justify-center px-4 text-center overflow-y-hidden">
             <div className="max-w-xl mx-auto">
               {/* Display icon and message based on payment status */}
               {orderStatus === "PAID" ? (
