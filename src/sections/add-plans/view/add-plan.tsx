@@ -23,7 +23,54 @@ interface Plan {
   activate_plan: number;
   type: string;
 }
-
+interface CopyUrlButtonProps {
+  url: string;
+}
+ // eslint-disable-next-line react/prop-types
+ export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+  
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        setSnackbarOpen(true);
+      } catch (error) {
+        console.error('Failed to copy!', error);
+      }
+    };
+  
+    return (
+      <>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleCopy}
+          sx={{
+            px: 2,
+            py: 1,
+            // mt: 1,
+            width: '100%',
+            // backgroundColor: 'red',
+            // color: 'white',
+            fontWeight: 'bold',
+            // '&:hover': { backgroundColor: 'darkred' },
+          }}
+        >
+          Copy URL
+        </Button>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSnackbarOpen(false)} severity="success">
+            URL copied!
+          </Alert>
+        </Snackbar>
+      </>
+    );
+  };
 const AddPlanView = () => {
   const [plans, setPlans] = useState<Plan[]>(() => []);
   const [token, setToken] = useState<string | null>(null);
@@ -44,7 +91,7 @@ const AddPlanView = () => {
     activate_plan: true,
     type: '',
   });
-
+ 
   const types = [
     { id: 1, planName: 'package' },
     { id: 2, planName: 'product' },
@@ -500,7 +547,7 @@ const AddPlanView = () => {
                               </button>
                             </div>
                           )}
-                          <div className="w-full px-6 py-1 pb-6">
+                          <div className="w-full px-6 py-1 pb-4">
                             <button
                               className="px-6 py-3 block cursor-pointer text-center w-full bg-red-500 text-white text-sm font-bold hover:bg-red-700 transition duration-200 rounded-md"
                               type="button"
@@ -509,6 +556,19 @@ const AddPlanView = () => {
                               Delete
                             </button>
                           </div>
+
+                          {/* <div className="w-full px-6 py-1 pb-2">
+                              <button
+                                className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
+                                type="button"
+                                onClick={() => handleUpdatePlan(plan.perma)}
+                              >
+                                Copy URL
+                              </button>
+                            </div> */}
+                            <div className='px-6 pb-6'>
+                            <CopyUrlButton url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`} />
+                            </div>
                         </div>
                       </Grid>
                     )

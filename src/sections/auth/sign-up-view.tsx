@@ -1,24 +1,22 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import axios from 'axios';
 /* eslint-disable import/no-extraneous-dependencies */
 import Cookies from 'js-cookie';
 import { Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
+import axios from 'axios';
 
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
-import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 import { useRouter } from 'src/routes/hooks';
-
 import { Iconify } from 'src/components/iconify';
-import CustomReCAPTCHA from 'src/components/recaptcha/CustomReCAPTCHA';
-import { BASE_URL, RECAPTCHA_SITEKEY, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ----------------------------------------------------------------------
 
@@ -29,7 +27,6 @@ export function SignUpView() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -52,17 +49,16 @@ export function SignUpView() {
   };
 
   const handleSignUp = useCallback(async () => {
-    // Validate required fields
     if (!fullName || !email || !password) {
       setSnackbar({ open: true, message: 'All fields are required.', severity: 'error' });
       return;
     }
-    // Validate email format
+
     if (!validateEmail(email)) {
       setSnackbar({ open: true, message: 'Invalid email format.', severity: 'error' });
       return;
     }
-    // Validate password complexity
+
     if (!validatePassword(password)) {
       setSnackbar({
         open: true,
@@ -70,11 +66,6 @@ export function SignUpView() {
           'Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
         severity: 'error',
       });
-      return;
-    }
-    // Validate reCAPTCHA completion
-    if (!recaptchaToken) {
-      setSnackbar({ open: true, message: 'Please complete the reCAPTCHA challenge.', severity: 'error' });
       return;
     }
 
@@ -87,7 +78,6 @@ export function SignUpView() {
           email,
           password,
           isAgency: false,
-          recaptchaToken, // Send the reCAPTCHA token to the backend for verification
         },
         {
           headers: {
@@ -100,7 +90,7 @@ export function SignUpView() {
         setSnackbar({ open: true, message: 'Registration successful!', severity: 'success' });
         setTimeout(() => router.push('/login'), 2000);
       }
-    } catch (error: any) {
+    } catch (error) {
       setSnackbar({
         open: true,
         message: error.response?.data?.message || 'Registration failed.',
@@ -109,7 +99,7 @@ export function SignUpView() {
     } finally {
       setLoading(false);
     }
-  }, [router, fullName, email, password, recaptchaToken]);
+  }, [router, fullName, email, password]);
 
   return (
     <>
@@ -162,15 +152,6 @@ export function SignUpView() {
           sx={{ mb: 3 }}
         />
 
-        {/* Custom reCAPTCHA Component */}
-        <Box sx={{ mb: 3, alignSelf: 'center' }}>
-          <CustomReCAPTCHA
-            siteKey={RECAPTCHA_SITEKEY}
-            onChange={(token: string | null) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
-        </Box>
-
         <LoadingButton
           fullWidth
           size="large"
@@ -189,7 +170,10 @@ export function SignUpView() {
         autoHideDuration={3000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

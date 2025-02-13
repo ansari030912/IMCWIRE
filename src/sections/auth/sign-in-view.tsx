@@ -11,14 +11,12 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
-import { BASE_URL, RECAPTCHA_SITEKEY, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
-import CustomReCAPTCHA from 'src/components/recaptcha/CustomReCAPTCHA';
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 export function SignInView() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,7 +24,9 @@ export function SignInView() {
   const getIpAddress = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/v1/ip/get-ip`, {
-        headers: { 'x-api-key': X_API_KEY },
+        headers: {
+          'x-api-key': X_API_KEY,
+        },
       });
       return response.data.ip;
     } catch (error) {
@@ -37,19 +37,10 @@ export function SignInView() {
 
   const handleSignIn = useCallback(async () => {
     setLoading(true);
-    setErrorMessage('');
-
-    // Check if reCAPTCHA has been completed
-    if (!recaptchaToken) {
-      setErrorMessage('Please complete the reCAPTCHA challenge.');
-      setLoading(false);
-      return;
-    }
-
     try {
       const ipAddress = await getIpAddress();
       if (!ipAddress) {
-        setErrorMessage('Session Timeout. Please login again.');
+        setErrorMessage('Session Timeout Please Login Again');
         setLoading(false);
         return;
       }
@@ -60,7 +51,6 @@ export function SignInView() {
           email,
           password,
           ipAddress,
-          recaptchaToken, // Include the reCAPTCHA token in the payload
         },
         {
           headers: {
@@ -81,13 +71,13 @@ export function SignInView() {
       } else {
         setErrorMessage('Invalid credentials or inactive account');
       }
-    } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || 'An error occurred during login');
+    } catch (error) {
+      setErrorMessage(error.response.data.message);
       console.error('Error during login:', error);
     } finally {
       setLoading(false);
     }
-  }, [email, password, recaptchaToken]);
+  }, [email, password]);
 
   return (
     <>
@@ -126,15 +116,6 @@ export function SignInView() {
           }}
           sx={{ mb: 1 }}
         />
-
-        {/* Custom reCAPTCHA Component */}
-        <Box sx={{ mb: 2, alignSelf: 'center' }}>
-          <CustomReCAPTCHA
-            siteKey={RECAPTCHA_SITEKEY}
-            onChange={(token: string | null) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
-        </Box>
 
         {errorMessage && (
           <Typography color="error" sx={{ mb: 2 }}>
