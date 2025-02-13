@@ -15,13 +15,17 @@ import {
   Alert,
   Radio,
   Button,
-  Snackbar,
+  Dialog,
+  Divider,
   Checkbox,
-  TextField,
+  Snackbar,
   FormLabel,
-  Typography,
+  TextField,
   RadioGroup,
+  Typography,
   FormControl,
+  DialogActions,
+  DialogContent,
   FormControlLabel,
 } from '@mui/material';
 
@@ -75,6 +79,10 @@ export function PackagesView({ id }: { id: string | undefined }) {
 
   // Current step
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [openTermsDialog, setOpenTermsDialog] = useState(false);
+
+  const handleOpenTermsDialog = () => setOpenTermsDialog(true);
+  const handleCloseTermsDialog = () => setOpenTermsDialog(false);
 
   // ------------------------------------------------------------------------------
   // 3) Snackbar for Error/Success Messages
@@ -924,7 +932,17 @@ export function PackagesView({ id }: { id: string | undefined }) {
               color="primary"
             />
           }
-          label="I agree to the Terms and Conditions"
+          label={
+            <span>
+              I agree to the{' '}
+              <span
+                onClick={handleOpenTermsDialog}
+                style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                Terms and Conditions
+              </span>
+            </span>
+          }
         />
 
         <div className="flex justify-between mt-6">
@@ -1052,6 +1070,117 @@ export function PackagesView({ id }: { id: string | undefined }) {
               </Grid>
             </Grid>
           </Box>
+          <Dialog
+            open={openTermsDialog}
+            onClose={handleCloseTermsDialog}
+            fullWidth
+            maxWidth="md"
+            PaperProps={{
+              sx: {
+                borderRadius: '12px',
+                boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+              },
+            }}
+          >
+            {/* Header with a Gradient Background and Close Icon */}
+            <Box
+              sx={{
+                background: 'linear-gradient(45deg, #924BC3 30%, #21CBF3 90%)',
+                color: 'white',
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                Terms and Conditions
+              </Typography>
+              {/* <IconButton onClick={handleCloseTermsDialog} sx={{ color: 'white' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                  <path
+                    fill="#ff0808"
+                    d="m13.41 12l4.3-4.29a1 1 0 1 0-1.42-1.42L12 10.59l-4.29-4.3a1 1 0 0 0-1.42 1.42l4.3 4.29l-4.3 4.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l4.29-4.3l4.29 4.3a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42Z"
+                  />
+                </svg>
+              </IconButton> */}
+            </Box>
+
+            {/* Content Area */}
+            <DialogContent
+              dividers
+              sx={{
+                backgroundColor: '#fafafa',
+                p: 3,
+              }}
+            >
+              {/* Non-Refundable Payment Policy Section */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  Non-Refundable Payment Policy
+                </Typography>
+                <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
+                  All payments made for our press release distribution services are non-refundable.
+                  This policy is enforced due to the upfront costs we incur, including payments to
+                  third-party websites for publication slots. Once a press release is processed for
+                  distribution across our extensive network, including premier sites such as Yahoo
+                  Finance, Bloomberg, MarketWatch, among others, we cannot offer refunds as we do
+                  not receive refunds from these websites.
+                </Typography>
+              </Box>
+              <Divider sx={{ my: 2 }} />
+
+              {/* Publication on Specific Topics Section */}
+              <Box sx={{ my: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  Publication on Specific Topics
+                </Typography>
+                <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
+                  Please note that if your press release covers topics such as Cryptocurrency, NFTs,
+                  Mining, Finance, Gambling, Casinos, and similar areas, we will submit your article
+                  to the websites you select. However, if your content is rejected three times by
+                  these platforms, we cannot refund your payment. We urge you to choose your topics
+                  and target websites carefully and consult with our support team if you have any
+                  questions or require guidance.{' '}
+                </Typography>
+              </Box>
+              <Divider sx={{ my: 2 }} />
+
+              {/* Additional Details Section */}
+              <Box sx={{ my: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  Additional Details
+                </Typography>
+                <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
+                  For further details about our services and specific policies, please visit our FAQ
+                  section or contact our support team for assistance.{' '}
+                  <a
+                    href="https://imcwire.com/contact/"
+                    style={{ color: 'blue', textDecoration: 'underline' }}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <b> Contact Us</b>
+                  </a>
+                </Typography>
+              </Box>
+            </DialogContent>
+
+            {/* Actions Area */}
+            <DialogActions
+              sx={{
+                backgroundColor: '#fafafa',
+                p: 2,
+                justifyContent: 'flex-end',
+                borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Button onClick={handleCloseTermsDialog} variant="contained" color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
     </DashboardContent>

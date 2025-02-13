@@ -43,6 +43,6 @@
 
 Distributed under the [MIT](https://github.com/minimal-ui-kit/minimal.free/blob/main/LICENSE.md) license.
 
-## Contact us
+## Contact Us
 
 Email: support@minimals.cc

@@ -11,6 +11,7 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
+
 import ThankyouStripe from 'src/sections/thankyou-stripe/view/thankyoustripe';
 import ThankyouPaypro from 'src/sections/thankyou-paypro/view/thankyoupaypro';
 import { TawkToScript } from 'src/components/talkto/TawkToScript';
@@ -113,6 +114,22 @@ function useRoutesByRole() {
       {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
+      },
+      {
+        path: 'thankyou/:id',
+        element: (
+          <div>
+            <ThankyouStripe />
+          </div>
+        ),
+      },
+      {
+        path: 'paypro/thankyou',
+        element: (
+          <div>
+            <ThankyouPaypro />
+          </div>
+        ),
       },
     ];
   }

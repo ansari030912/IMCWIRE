@@ -66,7 +66,7 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(
     */
 
     const baseSize = {
-      width: width ?? 160,
+      width: width ?? 180,
       height: height ?? 50,
       ...(!isSingle && {
         width: width ?? 120,
@@ -78,7 +78,7 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(
       <Box
         ref={ref}
         component={RouterLink}
-        href={href}
+        to="/dashboard" // Navigates to /dashboard when clicked
         className={logoClasses.root.concat(className ? ` ${className}` : '')}
         aria-label="Logo"
         sx={{
@@ -91,7 +91,7 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(
         }}
         {...other}
       >
-        <img src="/logo.webp" alt="" />
+        <img src="/logo.webp" alt="IMCWIRE DASHBOARD" />
       </Box>
     );
   }

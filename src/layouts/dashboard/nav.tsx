@@ -1,10 +1,11 @@
-import type { Breakpoint, SxProps, Theme } from '@mui/material/styles';
+import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
+
 import { useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import ListItem from '@mui/material/ListItem';
-import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import ListItemButton from '@mui/material/ListItemButton';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
 
@@ -14,10 +15,9 @@ import { RouterLink } from 'src/routes/components';
 import { varAlpha } from 'src/theme/styles';
 
 import { Scrollbar } from 'src/components/scrollbar';
+
 import { NavUpgrade } from '../components/nav-upgrade';
 import { WorkspacesPopover } from '../components/workspaces-popover';
-
-import type { WorkspacesPopoverProps } from '../components/workspaces-popover';
 
 // ----------------------------------------------------------------------
 
@@ -119,7 +119,11 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
   return (
     <>
       {/* Logo */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+      <Box
+        component={RouterLink as unknown as React.ElementType}
+        to="/dashboard"
+        sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}
+      >
         <img src="/logo.webp" alt="Imcwire" style={{ width: '70%' }} />
       </Box>
 
