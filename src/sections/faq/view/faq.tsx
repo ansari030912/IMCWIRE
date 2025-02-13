@@ -107,8 +107,13 @@ const FAQSection = () => {
             <h5 className="text-xl font-medium mb-4">Still have questions?</h5>
             <p className="text-gray-700">
               <span>For assistance, please visit our </span>
-              <a href="#" className="inline-block text-black font-bold underline text-purple-800">
-                Contact Us
+              <a
+                href="https://imcwire.com/contact/"
+                style={{ color: 'blue', textDecoration: 'underline' }}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <b> Contact Us</b>
               </a>
               <span>
                 . Our dedicated team is ready to help you on your journey to more sustainable
