@@ -143,7 +143,7 @@ const DashboardPlanView = () => {
                         <div className="w-full p-6">
                           <a
                             className="px-6 py-3 block text-center w-full bg-gray-800 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                            href={`/purchase/${plan.perma}`}
+                            href={`/dashboard/purchase/${plan.perma}`}
                           >
                             Buy Now
                           </a>
