@@ -114,6 +114,22 @@ function useRoutesByRole() {
         path: 'custom-invoice/:id',
         element: <CustomPlanCheckOutPage />,
       },
+      {
+        path: 'thankyou/:id',
+        element: (
+          <div>
+            <ThankyouStripe />
+          </div>
+        ),
+      },
+      {
+        path: 'paypro/thankyou',
+        element: (
+          <div>
+            <ThankyouPaypro />
+          </div>
+        ),
+      },
     ];
   }
 
