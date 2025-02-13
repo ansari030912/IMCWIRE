@@ -1,14 +1,7 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable import/no-extraneous-dependencies */
-import Cookies from 'js-cookie';
-<<<<<<< HEAD
-import { Link } from 'react-router-dom';
-import { useState, useCallback } from 'react';
 import axios from 'axios';
-=======
+import Cookies from 'js-cookie';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRef, useState, useEffect, useCallback } from 'react';
->>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -19,73 +12,125 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
-<<<<<<< HEAD
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-=======
 import FormControlLabel from '@mui/material/FormControlLabel';
->>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
-import { useRouter } from 'src/routes/hooks';
 import { Iconify } from 'src/components/iconify';
-<<<<<<< HEAD
-import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
-=======
 import { BASE_URL, X_API_KEY, RECAPTCHA_SITEKEY } from 'src/components/Urls/BaseApiUrls';
->>>>>>> 967701a63e5f1d676ff51f404cf8a9a0bcc2d3e2
 
-// ----------------------------------------------------------------------
+// Extend the Window interface to include recaptcha types
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoadCallback: () => void;
+  }
+}
 
 export function SignUpView() {
-  const router = useRouter();
-
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAgency, setIsAgency] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'warning' | 'info';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success', // Default to 'success'
-  });
+  const navigate = useNavigate();
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  // Snackbar states for displaying messages
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
+
+  // reCAPTCHA widget ref and widget ID ref
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<number | null>(null);
+
+  // Function to render the reCAPTCHA widget only once
+  const renderRecaptcha = () => {
+    if (widgetIdRef.current !== null) {
+      // Widget already rendered; do nothing.
+      return;
+    }
+    if (recaptchaRef.current && window.grecaptcha) {
+      const id = window.grecaptcha.render(recaptchaRef.current, {
+        sitekey: RECAPTCHA_SITEKEY,
+        callback: (token: string) => {
+          setRecaptchaToken(token);
+        },
+        'expired-callback': () => {
+          setRecaptchaToken(null);
+        },
+        'error-callback': () => {
+          setRecaptchaToken(null);
+        },
+      });
+      widgetIdRef.current = id;
+    }
   };
 
-  const validatePassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
+  // Dynamically load the Google reCAPTCHA script if not already loaded
+  useEffect(() => {
+    if (!window.grecaptcha) {
+      const script = document.createElement('script');
+      script.src =
+        'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoadCallback&render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      window.onRecaptchaLoadCallback = renderRecaptcha;
+    } else {
+      renderRecaptcha();
+    }
+  }, []);
+
+  // Handle closing the snackbar
+  const handleSnackbarClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
+  // Password validation function: must have one lowercase, one uppercase, one number and one special character.
+  const isPasswordValid = (pwd: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?-]).+$/;
+    return passwordRegex.test(pwd);
   };
 
   const handleSignUp = useCallback(async () => {
-    if (!fullName || !email || !password) {
-      setSnackbar({ open: true, message: 'All fields are required.', severity: 'error' });
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setSnackbar({ open: true, message: 'Invalid email format.', severity: 'error' });
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setSnackbar({
-        open: true,
-        message:
-          'Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
-        severity: 'error',
-      });
-      return;
-    }
-
     setLoading(true);
+
+    // Validate required fields
+    if (!fullName || !email || !password) {
+      setSnackbarMessage('All fields are required.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      setLoading(false);
+      return;
+    }
+
+    // Validate password format
+    if (!isPasswordValid(password)) {
+      setSnackbarMessage(
+        'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.'
+      );
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      setLoading(false);
+      return;
+    }
+
+    // Check if the user has completed the captcha
+    if (!recaptchaToken) {
+      setSnackbarMessage('Please verify that you are not a robot.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${BASE_URL}/v1/account/register`,
@@ -93,36 +138,57 @@ export function SignUpView() {
           username: fullName,
           email,
           password,
-          isAgency: false,
+          isAgency, // Added agency flag to the request body
         },
         {
           headers: {
             'x-api-key': X_API_KEY,
+            'Content-Type': 'application/json',
           },
         }
       );
 
       if (response.status === 201) {
-        setSnackbar({ open: true, message: 'Registration successful!', severity: 'success' });
-        setTimeout(() => router.push('/login'), 2000);
+        Cookies.set('user', JSON.stringify(response.data), { expires: 1 });
+        // Optionally, you can show a success message before navigating.
+        setSnackbarMessage('Registration successful! Redirecting to login...');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+      } else {
+        setSnackbarMessage('Registration failed.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        if (window.grecaptcha && widgetIdRef.current !== null) {
+          window.grecaptcha.reset(widgetIdRef.current);
+          setRecaptchaToken(null);
+        }
       }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Registration failed.',
-        severity: 'error',
-      });
+    } catch (error: any) {
+      setSnackbarMessage(
+        error.response?.data?.message ||
+          'An error occurred during registration.'
+      );
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      console.error('Error during registration:', error);
+      if (window.grecaptcha && widgetIdRef.current !== null) {
+        window.grecaptcha.reset(widgetIdRef.current);
+        setRecaptchaToken(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [router, fullName, email, password]);
+  }, [fullName, email, password, isAgency, recaptchaToken, navigate]);
 
   return (
     <>
       <Box gap={1.5} display="flex" flexDirection="column" alignItems="center" sx={{ mb: 5 }}>
-        <Typography variant="h5">Register Account</Typography>
+        <Typography variant="h5">Register</Typography>
         <Typography variant="body2" color="text.secondary">
-          Already have an account?
+          Already have an account?{' '}
           <Link to="/login" style={{ marginLeft: '4px', textDecoration: 'none', color: 'blue' }}>
             Login
           </Link>
@@ -132,29 +198,23 @@ export function SignUpView() {
       <Box display="flex" flexDirection="column" alignItems="flex-end">
         <TextField
           fullWidth
-          name="full_name"
           label="Full Name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          InputLabelProps={{ shrink: true }}
           sx={{ mb: 3 }}
         />
         <TextField
           fullWidth
-          name="email"
           label="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          InputLabelProps={{ shrink: true }}
           sx={{ mb: 3 }}
         />
         <TextField
           fullWidth
-          name="password"
           label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          InputLabelProps={{ shrink: true }}
           type={showPassword ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
@@ -168,10 +228,25 @@ export function SignUpView() {
           sx={{ mb: 3 }}
         />
 
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAgency}
+              onChange={(e) => setIsAgency(e.target.checked)}
+              color="primary"
+            />
+          }
+          label="Sign up as Agency"
+          sx={{ alignSelf: 'flex-start', mb: 3 }}
+        />
+
+        <Box sx={{ mb: 3, alignSelf: 'right', width: '100%' }}>
+          <div ref={recaptchaRef} />
+        </Box>
+
         <LoadingButton
           fullWidth
           size="large"
-          type="submit"
           color="inherit"
           variant="contained"
           onClick={handleSignUp}
@@ -180,17 +255,14 @@ export function SignUpView() {
           Register
         </LoadingButton>
       </Box>
-
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-        >
-          {snackbar.message}
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </>
