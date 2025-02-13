@@ -908,7 +908,11 @@ export function PackagesView({ id }: { id: string | undefined }) {
                 </>
               }
             />
-            <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" />
+            {/* <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" /> */}
+            {/* Only show PayPro if finalTotal is less than or equal to $250 */}
+            {finalTotal <= 250 && (
+              <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" />
+            )}
           </RadioGroup>
         </FormControl>
         <br />

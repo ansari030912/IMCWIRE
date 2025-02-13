@@ -2,7 +2,7 @@
 import axios from 'axios';
 import moment from 'moment';
 import Cookies from 'js-cookie';
-import React, { useState, useEffect } from 'react'; // for formatting dates
+import React, { useState, useEffect } from 'react';
 // Import Iconify for icons
 import { Icon as Iconify } from '@iconify/react';
 
@@ -48,6 +48,8 @@ const ProfilePage = () => {
   });
   // State to store the fetched profile from the API (if it exists)
   const [existingProfile, setExistingProfile] = useState<ProfileData | null>(null);
+  // State for controlling edit mode
+  const [editMode, setEditMode] = useState<boolean>(false);
   // State for displaying notifications
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -79,12 +81,17 @@ const ProfilePage = () => {
         },
       });
       // Map the profile data from the response (i.e. response.data.profile)
-      const {profile} = response.data;
+      const { profile } = response.data;
       // Check if the profile object has any keys
       if (profile && Object.keys(profile).length > 0) {
         setExistingProfile(profile);
-        // Optionally pre-populate the form with existing profile data (for updates)
-        setProfileData(profile);
+        const formattedProfile = {
+          ...profile,
+          date_of_birth: profile.date_of_birth
+            ? moment(profile.date_of_birth).format('YYYY-MM-DD')
+            : '',
+        };
+        setProfileData(formattedProfile);
       } else {
         setExistingProfile(null);
       }
@@ -135,6 +142,181 @@ const ProfilePage = () => {
     }
   };
 
+  // Update profile function for editing an existing profile
+  const handleUpdateProfile = async () => {
+    setLoading(true);
+    try {
+      await axios.put(`${BASE_URL}/v1/account/update`, profileData, {
+        headers: {
+          'X-API-Key': X_API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setSnackbar({
+        open: true,
+        message: 'Profile updated successfully!',
+        severity: 'success',
+      });
+      setEditMode(false);
+      // Refresh the profile details from the API
+      fetchProfile();
+    } catch (error: any) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Failed to update profile',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cancel editing and revert to the existing profile details
+  const handleCancelEdit = () => {
+    if (existingProfile) {
+      setProfileData(existingProfile);
+    }
+    setEditMode(false);
+  };
+
+  // Render the form used for both creating and updating the profile
+  const renderForm = () => (
+    <Paper
+      elevation={6}
+      sx={{
+        width: '100%',
+        maxWidth: 700,
+        p: { xs: 3, md: 4 },
+        borderRadius: 2,
+        boxShadow: 3,
+        backgroundColor: 'background.paper',
+        mb: 4,
+      }}
+    >
+      <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
+        {existingProfile ? 'Edit Your Profile' : 'Create Your Profile'}
+      </Typography>
+      <Typography variant="body1" align="center" sx={{ mb: 3 }}>
+        {existingProfile
+          ? 'Update your profile details below'
+          : 'Please fill in your profile details below'}
+      </Typography>
+      <Box component="form" noValidate autoComplete="off" className="grid md:grid-cols-2 gap-5">
+        <TextField
+          label="Full Name"
+          name="full_name"
+          value={profileData.full_name}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          label="Street Address"
+          name="street_address"
+          value={profileData.street_address}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          label="City"
+          name="city"
+          value={profileData.city}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          label="Country"
+          name="country"
+          value={profileData.country}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          label="Zip Code"
+          name="zip_code"
+          value={profileData.zip_code}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          label="Phone Number"
+          name="phone_number"
+          value={profileData.phone_number}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          select
+          label="Gender"
+          name="gender"
+          value={profileData.gender}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        >
+          <MenuItem value="Male">Male</MenuItem>
+          <MenuItem value="Female">Female</MenuItem>
+          <MenuItem value="Other">Other</MenuItem>
+        </TextField>
+        <TextField
+          label="Date of Birth"
+          name="date_of_birth"
+          type="date"
+          value={profileData.date_of_birth}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+      </Box>
+      <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={existingProfile ? handleUpdateProfile : handleSubmitProfile}
+          disabled={loading}
+          fullWidth
+          sx={{
+            py: 1.5,
+            fontSize: '1rem',
+            textTransform: 'none',
+          }}
+        >
+          {loading
+            ? existingProfile
+              ? 'Updating...'
+              : 'Submitting...'
+            : existingProfile
+              ? 'Update Profile'
+              : 'Create Profile'}
+        </Button>
+        {existingProfile && editMode && (
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleCancelEdit}
+            disabled={loading}
+            fullWidth
+            sx={{
+              py: 1.5,
+              fontSize: '1rem',
+              textTransform: 'none',
+            }}
+          >
+            Cancel
+          </Button>
+        )}
+      </Box>
+    </Paper>
+  );
+
   return (
     <Container
       sx={{
@@ -144,121 +326,11 @@ const ProfilePage = () => {
         p: 2,
       }}
     >
-      {/* Show the form only if a profile does NOT exist */}
-      {!existingProfile && (
-        <Paper
-          elevation={6}
-          sx={{
-            width: '100%',
-            maxWidth: 700,
-            p: { xs: 3, md: 4 },
-            borderRadius: 2,
-            boxShadow: 3,
-            backgroundColor: 'background.paper',
-            mb: 4,
-          }}
-        >
-          <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Create Your Profile
-          </Typography>
-          <Typography variant="body1" align="center" sx={{ mb: 3 }}>
-            Please fill in your profile details below
-          </Typography>
-          <Box component="form" noValidate autoComplete="off" className="grid md:grid-cols-2 gap-5">
-            <TextField
-              label="Full Name"
-              name="full_name"
-              value={profileData.full_name}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              label="Street Address"
-              name="street_address"
-              value={profileData.street_address}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              label="City"
-              name="city"
-              value={profileData.city}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              label="Country"
-              name="country"
-              value={profileData.country}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              label="Zip Code"
-              name="zip_code"
-              value={profileData.zip_code}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              label="Phone Number"
-              name="phone_number"
-              value={profileData.phone_number}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            />
-            <TextField
-              select
-              label="Gender"
-              name="gender"
-              value={profileData.gender}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-            >
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-            <TextField
-              label="Date of Birth"
-              name="date_of_birth"
-              type="date"
-              value={profileData.date_of_birth}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmitProfile}
-            disabled={loading}
-            fullWidth
-            sx={{
-              mt: 3,
-              py: 1.5,
-              fontSize: '1rem',
-              textTransform: 'none',
-            }}
-          >
-            {loading ? 'Submitting...' : 'Create Profile'}
-          </Button>
-        </Paper>
-      )}
+      {/* If no profile exists or edit mode is active, show the form */}
+      {(!existingProfile || editMode) && renderForm()}
 
-      {/* If a profile exists, display the profile details */}
-      {existingProfile && (
+      {/* If a profile exists and we're not editing, display the profile details */}
+      {existingProfile && !editMode && (
         <Paper
           elevation={6}
           sx={{
@@ -271,9 +343,14 @@ const ProfilePage = () => {
             mb: 4,
           }}
         >
-          <Typography variant="h5" align="center" gutterBottom sx={{ marginBottom: 5 }}>
-            Your Profile Details
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h5" gutterBottom>
+              Your Profile Details
+            </Typography>
+            <Button variant="outlined" onClick={() => setEditMode(true)}>
+              Edit Profile
+            </Button>
+          </Box>
           <Grid container spacing={2}>
             {/* Row 1: Full Name & Phone Number */}
             <Grid
