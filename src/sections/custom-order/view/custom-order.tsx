@@ -5,7 +5,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Box,
@@ -134,6 +134,26 @@ export function AddCustomOrderView() {
   const [countryToAdd, setCountryToAdd] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<ICountry[]>([]);
+  const [ipAddress, setIpAddress] = useState('');
+  console.log("🚀 ~ AddCustomOrderView ~ ipAddress:", ipAddress)
+
+  useEffect(() => {
+    const fetchIp = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/v1/ip/get-ip`, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+        setIpAddress(response?.data.ip);
+      } catch (error) {
+        console.error('Error fetching IP:', error);
+      }
+    };
+
+    fetchIp();
+  }, []);
 
   const handleAddCategory = () => {
     if (categoryToAdd && !selectedCategories.includes(categoryToAdd)) {
@@ -261,7 +281,7 @@ export function AddCustomOrderView() {
       pr_status: 'pending',
       total_price: Number(userCredentials.amountPaid),
       payment_status: 'paid',
-      ip_address: '192.168.1.100',
+      ip_address: ipAddress,
 
       // Updated targetCountries array
       targetCountries: selectedCountries.map((c, idx) => ({

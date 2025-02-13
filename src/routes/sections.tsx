@@ -227,7 +227,29 @@ export function Router() {
     { path: '404', element: <Page404 /> },
     { path: '*', element: <Navigate to="/404" replace /> },
     {
-      path: 'custom-invoice/:id',
+      path: 'dashboard/thankyou',
+      element: (
+        <div>
+          <br />
+          <br />
+          <br />
+          <Page404 />
+        </div>
+      ),
+    },
+    {
+      path: 'dashboard/paypro/thankyou',
+      element: (
+        <div>
+          <br />
+          <br />
+          <br />
+          <Page404 />
+        </div>
+      ),
+    },
+    {
+      path: 'dashboard/custom-invoice/:id',
       element: (
         <div>
           <br />
@@ -238,7 +260,7 @@ export function Router() {
       ),
     },
     {
-      path: 'purchase/:id',
+      path: 'dashboard/purchase/:id',
       element: (
         <div>
           <br />
