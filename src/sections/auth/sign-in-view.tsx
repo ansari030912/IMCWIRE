@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -11,7 +11,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
-import { BASE_URL, RECAPTCHA_SITEKEY, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
+import { BASE_URL, X_API_KEY, RECAPTCHA_SITEKEY } from 'src/components/Urls/BaseApiUrls';
 
 // Extend the Window interface to include reCAPTCHA types
 declare global {
@@ -28,7 +28,6 @@ export function SignInView() {
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   // reCAPTCHA widget element ref and widget ID ref
   const recaptchaRef = useRef<HTMLDivElement>(null);
@@ -132,9 +131,7 @@ export function SignInView() {
         }
       }
     } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message || 'An error occurred during login'
-      );
+      setErrorMessage(error.response?.data?.message || 'An error occurred during login');
       console.error('Error during login:', error);
       if (window.grecaptcha && widgetIdRef.current !== null) {
         window.grecaptcha.reset(widgetIdRef.current);
@@ -192,7 +189,10 @@ export function SignInView() {
           </Typography>
         )}
 
-        <Link to="/forgot-password" style={{ marginBottom: '6px', textDecoration: 'none', color: 'blue' }}>
+        <Link
+          to="/forgot-password"
+          style={{ marginBottom: '6px', textDecoration: 'none', color: 'blue' }}
+        >
           Forgot password?
         </Link>
 

@@ -327,22 +327,13 @@ export function PackagesView({ id }: { id: string | undefined }) {
         }
       );
 
-      if (
-        loginResponse.status === 200 &&
-        loginResponse.data.message === 'Login successful' &&
-        loginResponse.data.token &&
-        loginResponse.data.isActive
-      ) {
-        // Save user in cookies for 1 day
-        Cookies.set('user', JSON.stringify(loginResponse.data), { expires: 1 });
-        // Update local state
-        setLoggedInUser(loginResponse.data);
-        showSnackbar('Login successful!', 'success');
-        // Move to next step
-        handleNextActual();
-      } else {
-        setErrorMessage('Invalid credentials or inactive account');
-      }
+      // Save user in cookies for 1 day
+      Cookies.set('user', JSON.stringify(loginResponse.data), { expires: 1 });
+      // Update local state
+      setLoggedInUser(loginResponse.data);
+      showSnackbar('Login successful!', 'success');
+      // Move to next step
+      handleNextActual();
     } catch (error) {
       setErrorMessage('Login failed. Please try again.');
       console.error('Error during login:', error);
@@ -372,15 +363,10 @@ export function PackagesView({ id }: { id: string | undefined }) {
           'x-api-key': X_API_KEY,
         },
       });
-
-      if (resp.data && resp.data.token) {
-        Cookies.set('user', JSON.stringify(resp.data), { expires: 1 });
-        setLoggedInUser(resp.data);
-        showSnackbar('Registration successful!', 'success');
-        handleNextActual();
-      } else {
-        showSnackbar('Registration failed, please verify your details.', 'error');
-      }
+      Cookies.set('user', JSON.stringify(resp.data), { expires: 1 });
+      setLoggedInUser(resp.data);
+      showSnackbar('Registration successful!', 'success');
+      handleNextActual();
     } catch (err) {
       console.error(err);
       showSnackbar('Registration failed, please check your details.', 'error');
