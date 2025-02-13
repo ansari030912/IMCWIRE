@@ -31,9 +31,9 @@ import {
   DialogActions,
   DialogContent,
   TableContainer,
+  InputAdornment,
   TablePagination,
   AccordionDetails,
-  InputAdornment,
 } from '@mui/material';
 
 import { useRouter } from 'src/routes/hooks';
@@ -135,7 +135,7 @@ function getFieldValue(row: any, orderBy: string): string | number {
   if (orderBy === 'payment_status') return (row.payment_status || '').toLowerCase();
   if (orderBy === 'pr_status') return (row.pr_status || '').toLowerCase();
   if (orderBy === 'total_price') return parseFloat(row.total_price || '0');
-  if (orderBy === 'plan_updated_at') return new Date(row.plan_updated_at).getTime();
+  if (orderBy === 'plan_updated_at') return new Date(row.planRecords[0].updated_at).getTime();
   return '';
 }
 
@@ -459,7 +459,7 @@ export function AllOrdersView() {
                       <StyledTableCell align="right">${row.total_price}</StyledTableCell>
                       {/* New column for updated date */}
                       <StyledTableCell align="center">
-                        {new Date(row.plan_updated_at).toLocaleString()}
+                        {new Date(row.planRecords[0].updated_at).toLocaleString()}
                       </StyledTableCell>
                       <StyledTableCell align="center">
                         <Button variant="outlined" size="small" onClick={() => handleView(row)}>

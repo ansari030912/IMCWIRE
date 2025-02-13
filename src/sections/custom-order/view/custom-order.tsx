@@ -259,7 +259,7 @@ export function AddCustomOrderView() {
       // PR Order Details
       prType: prOption,
       pr_status: 'pending',
-      total_price: Number(finalTotal.toFixed(2)),
+      total_price: Number(userCredentials.amountPaid),
       payment_status: 'paid',
       ip_address: '192.168.1.100',
 

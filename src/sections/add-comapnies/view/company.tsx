@@ -355,7 +355,7 @@ const CompaniesView = () => {
                       Contact Info
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="left">
-                      Contact Email
+                      Contact Name
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="left">
                       Address
@@ -389,13 +389,13 @@ const CompaniesView = () => {
                           </Box>
                         </TableCell>
                         <TableCell align="left" className="text-nowrap">
-                          <Typography variant="body2">{company.contactName}</Typography>
+                          <Typography variant="body2">{company.email}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                             {company.phone}
                           </Typography>
                         </TableCell>
                         <TableCell align="left">
-                          <Typography variant="body2">{company.email}</Typography>
+                          <Typography variant="body2">{company.contactName}</Typography>
                         </TableCell>
                         <TableCell align="left">
                           <Box sx={{ pl: 2 }}>
