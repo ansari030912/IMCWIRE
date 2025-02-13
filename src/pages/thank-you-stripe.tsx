@@ -1,6 +1,4 @@
-import { Helmet } from 'react-helmet-async';
 
-import { CONFIG } from 'src/config-global';
 import ThankyouStripe from 'src/sections/thankyou-stripe/view/thankyoustripe';
 
 
