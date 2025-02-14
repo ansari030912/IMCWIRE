@@ -65,11 +65,20 @@ const PlanView = () => {
         ''
       ) : (
         <>
-          <hr className="text-gray-100 border-2" />
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center my-4">
+              {/* Heading with left and right lines */}
+              <div className="flex items-center w-full ">
+                <div className="flex-grow border-t border-gray-300" />
+                <h1 className="mx-4 text-3xl font-bold text-purple-800">Packages</h1>
+                <div className="flex-grow border-t border-gray-300" />
+              </div>
+            </div>
+          </div>
           <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
-                .filter((plan) => plan.type === 'product')
+                .filter((plan) => plan.type === 'package')
                 .map(
                   (plan, index) =>
                     plan.activate_plan === 1 && (
@@ -99,8 +108,8 @@ const PlanView = () => {
                               ${plan.totalPlanPrice}
                             </h2>
                             <div className="flex justify-center mt-4">
-                              <div className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
-                                {plan.type === 'product' ? 'Single Publication' : plan.type}
+                              <div className="bg-yellow-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
+                                {plan.type}
                               </div>
                             </div>
                           </div>
@@ -155,11 +164,20 @@ const PlanView = () => {
                 )}
             </Grid>
           </section>
-          <hr className="text-gray-100 border-2" />
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center my-4">
+              {/* Heading with left and right lines */}
+              <div className="flex items-center w-full ">
+                <div className="flex-grow border-t border-gray-300" />
+                <h1 className="mx-4 text-3xl font-bold text-purple-800">Single Publications</h1>
+                <div className="flex-grow border-t border-gray-300" />
+              </div>
+            </div>
+          </div>
           <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
-                .filter((plan) => plan.type === 'package')
+                .filter((plan) => plan.type === 'product')
                 .map(
                   (plan, index) =>
                     plan.activate_plan === 1 && (
@@ -189,8 +207,8 @@ const PlanView = () => {
                               ${plan.totalPlanPrice}
                             </h2>
                             <div className="flex justify-center mt-4">
-                              <div className="bg-yellow-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
-                                {plan.type}
+                              <div className="bg-red-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
+                                {plan.type === 'product' ? 'Single Publication' : plan.type}
                               </div>
                             </div>
                           </div>

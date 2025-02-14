@@ -46,6 +46,7 @@ const DashboardFAQSection = () => {
           <div className="flex flex-wrap -mx-4 mb-12">
             {faqs
               .sort((a: any, b: any) => moment(b.updated_at).unix() - moment(a.updated_at).unix())
+              .slice(0, 8)
               .map((faq: any) => (
                 <div key={faq.id} className="w-full lg:w-1/2 px-4 mb-4">
                   <button
@@ -108,6 +109,20 @@ const DashboardFAQSection = () => {
                   </button>
                 </div>
               ))}
+          </div>
+          <div className="max-w-7xl pl-2 text-left">
+            <h5 className="text-xl font-medium mb-4">
+              For More FAQ&apos;S <span>Go To</span>{' '}
+              <a
+                href="/dashboard/faqs"
+                style={{ color: 'blue' }}
+                // target="_blank"
+                rel="noreferrer"
+              >
+                <b> FAQs </b>
+              </a>
+              <span>Page.</span>
+            </h5>
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unstable-nested-components */
 import axios from 'axios';
 import Cookies from 'js-cookie';
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useState, useEffect } from 'react';
 
 import { Box, Grid, Alert, Button, MenuItem, Snackbar, TextField } from '@mui/material';
@@ -23,10 +23,11 @@ interface Plan {
   activate_plan: number;
   type: string;
 }
+
 interface CopyUrlButtonProps {
   url: string;
 }
-// eslint-disable-next-line react/prop-types
+
 export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -48,12 +49,8 @@ export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
         sx={{
           px: 2,
           py: 1,
-          // mt: 1,
           width: '100%',
-          // backgroundColor: 'red',
-          // color: 'white',
           fontWeight: 'bold',
-          // '&:hover': { backgroundColor: 'darkred' },
         }}
       >
         Copy URL
@@ -71,8 +68,9 @@ export const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({ url }) => {
     </>
   );
 };
+
 const AddPlanView = () => {
-  const [plans, setPlans] = useState<Plan[]>(() => []);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [token, setToken] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
   const [showForm, setShowForm] = useState(false);
@@ -81,6 +79,9 @@ const AddPlanView = () => {
     message: '',
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   });
+  // Track whether the Perma field was manually edited.
+  const [isPermaEdited, setIsPermaEdited] = useState(false);
+
   const [newPlan, setNewPlan] = useState({
     planName: '',
     totalPlanPrice: '',
@@ -97,16 +98,17 @@ const AddPlanView = () => {
     { id: 1, planName: 'package' },
     { id: 2, planName: 'product' },
   ];
+
   useEffect(() => {
     const user = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
     if (user?.token) {
       setToken(user.token);
     }
-    // Assume the user object has a property "role"
     if (user?.role === 'super_admin') {
       setIsSuperAdmin(true);
     }
   }, []);
+
   const fetchPlans = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/v1/plan/list`, {
@@ -116,16 +118,15 @@ const AddPlanView = () => {
         },
       });
 
-      // Ensure response.data is an array before setting it
       if (Array.isArray(response.data)) {
         setPlans(response.data);
       } else {
         console.error('Error: API response is not an array', response.data);
-        setPlans([]); // Default to an empty array
+        setPlans([]);
       }
     } catch (error) {
       console.error('Error fetching Plans:', error);
-      setPlans([]); // Default to an empty array if API fails
+      setPlans([]);
     }
   };
 
@@ -162,11 +163,11 @@ const AddPlanView = () => {
     if (
       !newPlan.numberOfPR.trim() ||
       Number(newPlan.numberOfPR) <= 0 ||
-      Number(newPlan.numberOfPR) > 20
+      Number(newPlan.numberOfPR) > 1000
     ) {
       setSnackbar({
         open: true,
-        message: 'Number of PR must be between 1 and 20',
+        message: 'Number of PR must be between 1 and 1000',
         severity: 'error',
       });
       return false;
@@ -178,7 +179,7 @@ const AddPlanView = () => {
     ) {
       setSnackbar({
         open: true,
-        message: 'PR Single Price must be between 1 and 1000',
+        message: 'PR Single Price must be between 1 and 100000',
         severity: 'error',
       });
       return false;
@@ -193,7 +194,7 @@ const AddPlanView = () => {
   const handleAddPlan = async () => {
     if (!validateForm()) return;
 
-    // Check if the plan already exists
+    // Check if the plan already exists.
     const planExists = plans.some(
       (plan) =>
         plan.planName.toLowerCase() === newPlan.planName.toLowerCase() &&
@@ -232,9 +233,9 @@ const AddPlanView = () => {
         activate_plan: true,
         type: '',
       });
-
+      setIsPermaEdited(false);
       setSnackbar({ open: true, message: 'Plan added successfully!', severity: 'success' });
-      fetchPlans(); // Refresh plan list
+      fetchPlans();
       setShowForm(false);
     } catch (error) {
       console.error('Error adding Plan:', error);
@@ -242,10 +243,18 @@ const AddPlanView = () => {
     }
   };
 
+  // Helper function to convert text to a URL-friendly slug.
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\\-]/g, '');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Allow users to fully delete input before retyping
+    // If clearing the input.
     if (value === '') {
       setNewPlan((prev) => ({
         ...prev,
@@ -255,28 +264,45 @@ const AddPlanView = () => {
             ? String(Number(prev.numberOfPR || 0) * Number(prev.priceSingle || 0))
             : prev.totalPlanPrice,
       }));
+      if (name === 'perma') {
+        setIsPermaEdited(false);
+      }
       return;
     }
 
-    // Convert input to a number
-    const numValue = Number(value);
+    // For number fields.
+    if (name === 'numberOfPR' || name === 'priceSingle') {
+      const numValue = Number(value);
+      if (name === 'numberOfPR' && (numValue > 1000 || numValue < 1)) return;
+      if (name === 'priceSingle' && (numValue > 100000 || numValue < 1)) return;
+    }
 
-    // Restrict invalid values (negative numbers, out-of-range)
-    if (name === 'numberOfPR' && (numValue > 20 || numValue < 1)) return;
-    if (name === 'priceSingle' && (numValue > 100000 || numValue < 1)) return;
+    // Auto-update the Perma field if the Plan Name changes and the Perma hasn’t been manually edited.
+    if (name === 'planName') {
+      setNewPlan((prev) => {
+        const updatedPlan = { ...prev, planName: value };
+        if (!isPermaEdited) {
+          updatedPlan.perma = slugify(value);
+        }
+        updatedPlan.totalPlanPrice = String(
+          Number(updatedPlan.numberOfPR || 0) * Number(updatedPlan.priceSingle || 0)
+        );
+        return updatedPlan;
+      });
+      return;
+    }
 
-    // Update state and calculate total price dynamically
+    // When Perma is edited manually.
+    if (name === 'perma') {
+      setIsPermaEdited(true);
+    }
+
+    // Generic update.
     setNewPlan((prev) => {
-      const updatedPlan = {
-        ...prev,
-        [name]: value, // Keep the input as a string for controlled behavior
-      };
-
-      // Live update total price based on new values
+      const updatedPlan = { ...prev, [name]: value };
       updatedPlan.totalPlanPrice = String(
         Number(updatedPlan.numberOfPR || 0) * Number(updatedPlan.priceSingle || 0)
       );
-
       return updatedPlan;
     });
   };
@@ -298,13 +324,12 @@ const AddPlanView = () => {
       setSnackbar({ open: true, message: 'Failed to delete plan', severity: 'error' });
     }
   };
+
   const handleUpdatePlan = async (perma: string) => {
     try {
       const response = await axios.put(
         `${BASE_URL}/v1/plan/update/${perma}`,
-        {
-          activate_plan: 0, // Fixed syntax error
-        },
+        { activate_plan: 0 },
         {
           headers: {
             'X-API-Key': X_API_KEY,
@@ -314,7 +339,7 @@ const AddPlanView = () => {
       );
 
       if (response.status === 200) {
-        setSnackbar({ open: true, message: 'Plan Deactivated successfully!', severity: 'success' });
+        setSnackbar({ open: true, message: 'Plan deactivated successfully!', severity: 'success' });
         fetchPlans();
       }
     } catch (error) {
@@ -324,6 +349,7 @@ const AddPlanView = () => {
 
   return (
     <div className="container mx-auto px-4">
+      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -332,18 +358,11 @@ const AddPlanView = () => {
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+
       <div className="text-left mb-12 pl-2">
         <h1 className="font-bold text-5xl text-purple-800 mb-6">IMCWIRE All Plans</h1>
         <p className="text-gray-700">Manage plans for the platform.</p>
       </div>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
-      </Snackbar>
 
       <Box display="flex" alignItems="end" justifyContent="end" mb={5}>
         <Button
@@ -384,6 +403,7 @@ const AddPlanView = () => {
             name="perma"
             value={newPlan.perma}
             onChange={handleInputChange}
+            helperText="Auto-generated from Plan Name but editable"
           />
           <br />
           <br />
@@ -422,7 +442,7 @@ const AddPlanView = () => {
             type="number"
             value={newPlan.numberOfPR}
             onChange={handleInputChange}
-            inputProps={{ min: 1, max: 20 }} // Restrict max input to 20
+            inputProps={{ min: 1, max: 1000 }}
           />
           <br />
           <br />
@@ -434,7 +454,7 @@ const AddPlanView = () => {
             type="number"
             value={newPlan.priceSingle}
             onChange={handleInputChange}
-            inputProps={{ min: 1, max: 100000 }} // Restrict max input to 1000
+            inputProps={{ min: 1, max: 100000 }}
           />
           <br />
           <br />
@@ -445,255 +465,237 @@ const AddPlanView = () => {
             name="totalPlanPrice"
             type="number"
             value={newPlan.totalPlanPrice}
-            disabled // Auto-calculated field
+            disabled
           />
           <br />
-          {/* <br /> */}
           <Button onClick={handleAddPlan} variant="contained" color="primary" sx={{ mt: 2 }}>
             Add Plan
           </Button>
         </div>
       )}
-      {Array.isArray(plans) && plans.length > 0 ? (
+
+      {plans.length > 0 ? (
         <>
-          <hr className="text-gray-100 border-2" />
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center my-4">
+              {/* Heading with left and right lines */}
+              <div className="flex items-center w-full ">
+                <div className="flex-grow border-t border-gray-300" />
+                <h1 className="mx-4 text-3xl font-bold text-purple-800">Packages</h1>
+                <div className="flex-grow border-t border-gray-300" />
+              </div>
+            </div>
+          </div>
+          {/* Section for Package Plans */}
           <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
-                ?.filter((plan) => plan.type === 'product')
-                ?.map(
-                  (plan, index) =>
-                    plan.activate_plan >= 1 && (
-                      <Grid key={index} item lg={4} md={6} sm={12} className="w-full ">
-                        {/* Wrapped card inside div for spacing & shadow */}
+                .filter((plan) => plan.type === 'package')
+                .map((plan, index) =>
+                  plan.activate_plan >= 1 ? (
+                    <Grid key={index} item lg={4} md={6} sm={12} className="w-full">
+                      <div
+                        className="bg-white rounded-lg overflow-hidden"
+                        style={{
+                          boxShadow:
+                            '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
+                          borderRadius: '10px',
+                          marginBottom: '20px',
+                        }}
+                      >
                         <div
-                          className="bg-white rounded-lg overflow-hidden"
                           style={{
-                            boxShadow:
-                              '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
-                            borderRadius: '10px',
-                            marginBottom: '20px',
+                            backgroundImage: `url('/package.jpg')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
                           }}
+                          className="w-full p-6 rounded-t-lg"
                         >
-                          {/* Plan Header */}
-                          <div
-                            style={{
-                              backgroundImage: `url('/package.jpg')`, // No need for ./ or ../
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              // backgroundAttachment: 'fixed',
-                            }}
-                            className="w-full p-6 rounded-t-lg"
-                          >
-                            <h2 className="font-black text-center text-3xl">{plan.planName}</h2>
-                            <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
-                              ${plan.totalPlanPrice}
-                            </h2>
-                            <div className="flex justify-center mt-4">
-                              <div className="bg-green-500 text-white rounded-lg px-3 py-2 text-sm  font-bold inline-block">
-                                {plan.type === 'product' ? 'Single Publication' : plan.type}
-                              </div>
+                          <h2 className="font-black text-center text-3xl">{plan.planName}</h2>
+                          <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
+                            ${plan.totalPlanPrice}
+                          </h2>
+                          <div className="flex justify-center mt-4">
+                            <div className="bg-yellow-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
+                              {plan.type}
                             </div>
                           </div>
-
-                          {/* Plan Features */}
-                          <div className="w-full p-6 bg-white rounded-b-lg">
-                            <ul className="space-y-3">
-                              <li className="flex gap-2 items-center">
-                                ✅ <p className="text-gray-500">{plan.planDescription}</p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅{' '}
-                                <p className="text-gray-500">
-                                  Single PR{' '}
-                                  <span className="text-purple-800 font-bold">
-                                    {plan.priceSingle}$
-                                  </span>
-                                </p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅ <p className="text-gray-500">{plan.numberOfPR} PR Articles</p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅{' '}
-                                <p className="text-gray-500">
-                                  Sample link:{' '}
-                                  <a
-                                    href={plan.pdfLink}
-                                    target="_blank"
-                                    className="text-blue-600 underline"
-                                    rel="noreferrer"
-                                  >
-                                    View
-                                  </a>
-                                </p>
-                              </li>
-                            </ul>
-                          </div>
-
-                          {/* Buy Now Button */}
-                          {/* <div className="w-full px-6 py-1">
-                        <a
-                          className="px-6 py-3 block text-center w-full bg-gray-800 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                          href="#"
-                        >
-                          Buy Now
-                        </a>
-                      </div> */}
-                          {plan.activate_plan <= 0 ? (
-                            ''
-                          ) : (
-                            <div className="w-full px-6 py-1 pb-2">
-                              <button
-                                className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                                type="button"
-                                onClick={() => handleUpdatePlan(plan.perma)}
-                              >
-                                De Activate
-                              </button>
-                            </div>
-                          )}
-                          <div className="w-full px-6 py-1 pb-4">
-                            <button
-                              className="px-6 py-3 block cursor-pointer text-center w-full bg-red-500 text-white text-sm font-bold hover:bg-red-700 transition duration-200 rounded-md"
-                              type="button"
-                              onClick={() => handleDeletePlan(plan.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-
-                          {/* <div className="w-full px-6 py-1 pb-2">
-                              <button
-                                className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                                type="button"
-                                onClick={() => handleUpdatePlan(plan.perma)}
-                              >
-                                Copy URL
-                              </button>
-                            </div> */}
-                          {isSuperAdmin && (
-                            <Box sx={{ px: 3, pb: 2 }}>
-                              <CopyUrlButton
-                                url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`}
-                              />
-                            </Box>
-                          )}
                         </div>
-                      </Grid>
-                    )
+
+                        <div className="w-full p-6 bg-white rounded-b-lg">
+                          <ul className="space-y-3">
+                            <li className="flex gap-2 items-center">
+                              ✅ <p className="text-gray-500">{plan.planDescription}</p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅{' '}
+                              <p className="text-gray-500">
+                                Single PR{' '}
+                                <span className="text-purple-800 font-bold">
+                                  {plan.priceSingle}$
+                                </span>
+                              </p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅ <p className="text-gray-500">{plan.numberOfPR} PR Articles</p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅{' '}
+                              <p className="text-gray-500">
+                                Sample link:{' '}
+                                <a
+                                  href={plan.pdfLink}
+                                  target="_blank"
+                                  className="text-blue-600 underline"
+                                  rel="noreferrer"
+                                >
+                                  View
+                                </a>
+                              </p>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div className="w-full px-6 py-1 pb-2">
+                          <button
+                            className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
+                            type="button"
+                            onClick={() => handleUpdatePlan(plan.perma)}
+                          >
+                            Deactivate
+                          </button>
+                        </div>
+                        <div className="w-full px-6 py-1 pb-6">
+                          <button
+                            className="px-6 py-3 block cursor-pointer text-center w-full bg-red-500 text-white text-sm font-bold hover:bg-red-700 transition duration-200 rounded-md"
+                            type="button"
+                            onClick={() => handleDeletePlan(plan.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        {isSuperAdmin && (
+                          <Box sx={{ px: 3, pb: 2 }}>
+                            <CopyUrlButton
+                              url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`}
+                            />
+                          </Box>
+                        )}
+                      </div>
+                    </Grid>
+                  ) : null
                 )}
             </Grid>
           </section>
-          <hr className="text-gray-100 border-2" />
+
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center my-4">
+              {/* Heading with left and right lines */}
+              <div className="flex items-center w-full ">
+                <div className="flex-grow border-t border-gray-300" />
+                <h1 className="mx-4 text-3xl font-bold text-purple-800">Single Publications</h1>
+                <div className="flex-grow border-t border-gray-300" />
+              </div>
+            </div>
+          </div>
+          {/* Section for Product Plans */}
           <section className="pt-10">
             <Grid container spacing={4} justifyContent="start">
               {plans
-                ?.filter((plan) => plan.type === 'package')
-                ?.map(
-                  (plan, index) =>
-                    plan.activate_plan >= 1 && (
-                      <Grid key={index} item lg={4} md={6} sm={12} className="w-full ">
-                        {/* Wrapped card inside div for spacing & shadow */}
+                .filter((plan) => plan.type === 'product')
+                .map((plan, index) =>
+                  plan.activate_plan >= 1 ? (
+                    <Grid key={index} item lg={4} md={6} sm={12} className="w-full">
+                      <div
+                        className="bg-white rounded-lg overflow-hidden"
+                        style={{
+                          boxShadow:
+                            '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
+                          borderRadius: '10px',
+                          marginBottom: '20px',
+                        }}
+                      >
                         <div
-                          className="bg-white rounded-lg overflow-hidden"
                           style={{
-                            boxShadow:
-                              '4px 4px 10px rgba(0, 0, 0, 0.05), -4px 4px 10px rgba(0, 0, 0, 0.05), 0px -4px 10px rgba(0, 0, 0, 0.05), 0px 4px 10px rgba(0, 0, 0, 0.05)',
-                            borderRadius: '10px',
-                            marginBottom: '20px',
+                            backgroundImage: `url('/package.jpg')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
                           }}
+                          className="w-full p-6 rounded-t-lg"
                         >
-                          {/* Plan Header */}
-                          <div
-                            style={{
-                              backgroundImage: `url('/package.jpg')`, // No need for ./ or ../
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              // backgroundAttachment: 'fixed',
-                            }}
-                            className="w-full p-6 rounded-t-lg"
-                          >
-                            <h2 className="font-black text-center text-3xl">{plan.planName}</h2>
-                            <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
-                              ${plan.totalPlanPrice}
-                            </h2>
-                            <div className="flex justify-center mt-4">
-                              <div className="bg-yellow-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
-                                {plan.type}
-                              </div>
+                          <h2 className="font-black text-center text-3xl">{plan.planName}</h2>
+                          <h2 className="font-heading text-center pt-5 text-4xl font-black text-purple-800">
+                            ${plan.totalPlanPrice}
+                          </h2>
+                          <div className="flex justify-center mt-4">
+                            <div className="bg-green-500 text-white rounded-lg px-3 py-2 text-sm font-bold inline-block">
+                              {plan.type === 'product' ? 'Single Publication' : plan.type}
                             </div>
-                          </div>
-
-                          {/* Plan Features */}
-                          <div className="w-full p-6 bg-white rounded-b-lg">
-                            <ul className="space-y-3">
-                              <li className="flex gap-2 items-center">
-                                ✅ <p className="text-gray-500">{plan.planDescription}</p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅{' '}
-                                <p className="text-gray-500">
-                                  Single PR{' '}
-                                  <span className="text-purple-800 font-bold">
-                                    {plan.priceSingle}$
-                                  </span>
-                                </p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅ <p className="text-gray-500">{plan.numberOfPR} PR Articles</p>
-                              </li>
-                              <li className="flex gap-2 items-center">
-                                ✅{' '}
-                                <p className="text-gray-500">
-                                  Sample link:{' '}
-                                  <a
-                                    href={plan.pdfLink}
-                                    target="_blank"
-                                    className="text-blue-600 underline"
-                                    rel="noreferrer"
-                                  >
-                                    View
-                                  </a>
-                                </p>
-                              </li>
-                            </ul>
-                          </div>
-
-                          {/* Buy Now Button */}
-                          {/* <div className="w-full px-6 py-1">
-                        <a
-                          className="px-6 py-3 block text-center w-full bg-gray-800 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                          href="#"
-                        >
-                          Buy Now
-                        </a>
-                      </div> */}
-                          {plan.activate_plan <= 0 ? (
-                            ''
-                          ) : (
-                            <div className="w-full px-6 py-1 pb-2">
-                              <button
-                                className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
-                                type="button"
-                                onClick={() => handleUpdatePlan(plan.perma)}
-                              >
-                                De Activate
-                              </button>
-                            </div>
-                          )}
-                          <div className="w-full px-6 py-1 pb-6">
-                            <button
-                              className="px-6 py-3 block cursor-pointer text-center w-full bg-red-500 text-white text-sm font-bold hover:bg-red-700 transition duration-200 rounded-md"
-                              type="button"
-                              onClick={() => handleDeletePlan(plan.id)}
-                            >
-                              Delete
-                            </button>
                           </div>
                         </div>
-                      </Grid>
-                    )
+
+                        <div className="w-full p-6 bg-white rounded-b-lg">
+                          <ul className="space-y-3">
+                            <li className="flex gap-2 items-center">
+                              ✅ <p className="text-gray-500">{plan.planDescription}</p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅{' '}
+                              <p className="text-gray-500">
+                                Single PR{' '}
+                                <span className="text-purple-800 font-bold">
+                                  {plan.priceSingle}$
+                                </span>
+                              </p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅ <p className="text-gray-500">{plan.numberOfPR} PR Articles</p>
+                            </li>
+                            <li className="flex gap-2 items-center">
+                              ✅{' '}
+                              <p className="text-gray-500">
+                                Sample link:{' '}
+                                <a
+                                  href={plan.pdfLink}
+                                  target="_blank"
+                                  className="text-blue-600 underline"
+                                  rel="noreferrer"
+                                >
+                                  View
+                                </a>
+                              </p>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div className="w-full px-6 py-1 pb-2">
+                          <button
+                            className="px-6 py-3 block cursor-pointer text-center w-full bg-gray-700 text-white text-sm font-bold hover:bg-gray-600 transition duration-200 rounded-md"
+                            type="button"
+                            onClick={() => handleUpdatePlan(plan.perma)}
+                          >
+                            Deactivate
+                          </button>
+                        </div>
+                        <div className="w-full px-6 py-1 pb-4">
+                          <button
+                            className="px-6 py-3 block cursor-pointer text-center w-full bg-red-500 text-white text-sm font-bold hover:bg-red-700 transition duration-200 rounded-md"
+                            type="button"
+                            onClick={() => handleDeletePlan(plan.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        {isSuperAdmin && (
+                          <Box sx={{ px: 3, pb: 2 }}>
+                            <CopyUrlButton
+                              url={`https://dashboard.imcwire.com/dashboard/purchase/${plan.perma}`}
+                            />
+                          </Box>
+                        )}
+                      </div>
+                    </Grid>
+                  ) : null
                 )}
             </Grid>
           </section>
@@ -706,4 +708,5 @@ const AddPlanView = () => {
     </div>
   );
 };
+
 export default AddPlanView;
