@@ -6,7 +6,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import {
   Box,
@@ -45,37 +45,31 @@ interface ICountry {
 }
 
 export function PackagesView({ id }: { id: string | undefined }) {
-  // ------------------------------------------------------------------------------
-  // 1) Check if User is Already Logged In (via cookies)
-  // ------------------------------------------------------------------------------
-  const cookieUser = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
+  // --------------------------------------------------------------------------
+  // 1) Keep a single "loggedInUser" in state, derive "isAuthenticated"
+  // --------------------------------------------------------------------------
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    const cookie = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
+    return cookie;
+  });
+
   const isAuthenticated = Boolean(
-    cookieUser &&
-      cookieUser.token &&
-      cookieUser.message === 'Login successful' &&
-      cookieUser.isActive
+    loggedInUser &&
+      loggedInUser.token &&
+      loggedInUser.message === 'Login successful' &&
+      loggedInUser.isActive
   );
 
-  // Keep track of user info in state (token, etc.)
-  const [loggedInUser, setLoggedInUser] = useState<any>(cookieUser || null);
-
-  // ------------------------------------------------------------------------------
-  // 2) Steps:
-  //    - If logged in: 3 steps total (step 3 = GO TO CHECKOUT)
-  //    - If NOT logged in: 4 steps total (step 3 = REGISTER/LOGIN, step 4 = CHECKOUT)
-  // ------------------------------------------------------------------------------
-  const steps = isAuthenticated
-    ? [
-        { id: 1, name: 'CHOOSE YOUR DISTRIBUTION' },
-        { id: 2, name: 'UPLOAD FILE' },
-        { id: 3, name: 'GO TO CHECKOUT' },
-      ]
-    : [
-        { id: 1, name: 'CHOOSE YOUR DISTRIBUTION' },
-        { id: 2, name: 'UPLOAD FILE' },
-        { id: 3, name: 'REGISTER or LOGIN' },
-        { id: 4, name: 'GO TO CHECKOUT' },
-      ];
+  // --------------------------------------------------------------------------
+  // 2) Use a SINGLE 4-step array (no more conditional steps)
+  // --------------------------------------------------------------------------
+  // <-- CHANGED
+  const steps = [
+    { id: 1, name: 'CHOOSE YOUR DISTRIBUTION' },
+    { id: 2, name: 'UPLOAD FILE' },
+    { id: 3, name: 'REGISTER or LOGIN' },
+    { id: 4, name: 'GO TO CHECKOUT' },
+  ];
 
   // Current step
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -84,18 +78,35 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const handleOpenTermsDialog = () => setOpenTermsDialog(true);
   const handleCloseTermsDialog = () => setOpenTermsDialog(false);
 
-  // ------------------------------------------------------------------------------
-  // 3) Snackbar for Error/Success Messages
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 3) If user hits Step 3 and is already logged in, auto-skip to Step 4
+  // --------------------------------------------------------------------------
+  // <-- CHANGED
+  useEffect(() => {
+    if (currentStep === 3 && isAuthenticated) {
+      handleNextActual(); // jump to step 4
+    }
+  }, [currentStep, isAuthenticated]);
+
+  // --------------------------------------------------------------------------
+  // 4) Snackbar for Error/Success
+  // --------------------------------------------------------------------------
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const [basePlanPrice, setBasePlanPrice] = useState(0);
-  const [planType, setPlanType] = useState<string>(''); // Stores the plan type ("package" or "product")
-  const [discount, setDiscount] = useState<number>(0); // Stores the discount amount
+  const [planType, setPlanType] = useState<string>('');
+  const [discount, setDiscount] = useState<number>(0);
   const [planId, setPlanId] = useState(0);
   const router = useRouter();
 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [ipAddress, setIpAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // --------------------------------------------------------------------------
+  // 5) Fetch the plan on mount
+  // --------------------------------------------------------------------------
   useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -108,8 +119,8 @@ export function PackagesView({ id }: { id: string | undefined }) {
 
         if (response.status === 200) {
           const planData = response.data;
-          setPlanType(planData.type); // ✅ Store plan type in state
-          setBasePlanPrice(Number(planData.totalPlanPrice)); // Store base price
+          setPlanType(planData.type);
+          setBasePlanPrice(Number(planData.totalPlanPrice));
           setPlanId(planData.id);
         }
       } catch (error) {
@@ -118,9 +129,26 @@ export function PackagesView({ id }: { id: string | undefined }) {
         console.error('Error fetching plan:', error);
       }
     };
-
     fetchPlan();
-  }, []);
+  }, [id, router]);
+
+  // Fetch IP for login
+  useEffect(() => {
+    const fetchIp = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/v1/ip/get-ip`, {
+          headers: {
+            'x-api-key': X_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+        setIpAddress(response?.data.ip);
+      } catch (error) {
+        console.error('Error fetching IP:', error);
+      }
+    };
+    fetchIp();
+  }, [id]);
 
   function showSnackbar(message: string, severity: 'error' | 'success' = 'error') {
     setSnackbarMessage(message);
@@ -132,10 +160,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
     setSnackbarOpen(false);
   }
 
-  // ------------------------------------------------------------------------------
-  // 4) Distribution / Pricing
-  // ------------------------------------------------------------------------------
-
+  // --------------------------------------------------------------------------
+  // 6) Distribution / Pricing
+  // --------------------------------------------------------------------------
   const allCategories = [
     'General',
     'Technology',
@@ -202,7 +229,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const [categoryToAdd, setCategoryToAdd] = useState('');
   const [countryToAdd, setCountryToAdd] = useState('');
 
-  // Selected items
+  // Selected
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<ICountry[]>([]);
 
@@ -233,7 +260,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
     );
   }
 
-  // Pricing logic
+  // Pricing
   const categoryCount = selectedCategories.length;
   const countryCount = selectedCountries.length;
 
@@ -251,61 +278,33 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const partialTotal =
     basePlanPrice + additionalCategoriesCost + additionalCountriesCost + totalTranslationCost;
 
-  // ------------------------------------------------------------------------------
-  // 5) Step 2: “Write from us” => +$120 OR “Upload doc”
-  // ------------------------------------------------------------------------------
-  // '' = not chosen
-  // 'write' => +120
-  // 'upload' => 0
+  // --------------------------------------------------------------------------
+  // 7) Step 2: "Write from us" => +$120 or "Upload doc" => $0
+  // --------------------------------------------------------------------------
   const [uploadChoice, setUploadChoice] = useState<'write' | 'upload' | ''>('');
   const writeCost = uploadChoice === 'write' ? 120 : 0;
   const finalTotal = partialTotal + writeCost;
 
-  // ------------------------------------------------------------------------------
-  // 6) Step 3 (if not logged in): Register OR Login (toggle)
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 8) Step 3: Register or Login
+  // --------------------------------------------------------------------------
   const [showLogin, setShowLogin] = useState(false);
 
-  // Fields for both register & login
+  // Fields for both
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   // Additional for Register
   const [name, setName] = useState('');
   const [isAgency, setIsAgency] = useState(false);
 
-  // ------------------------------------------------------------------------------
-  // 6a) LOGIN user if “already have an account”
-  // ------------------------------------------------------------------------------
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [ipAddress, setIpAddress] = useState('');
-
-  useEffect(() => {
-    const fetchIp = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/v1/ip/get-ip`, {
-          headers: {
-            'x-api-key': X_API_KEY,
-            'Content-Type': 'application/json',
-          },
-        });
-        setIpAddress(response?.data.ip);
-      } catch (error) {
-        console.error('Error fetching IP:', error);
-      }
-    };
-
-    fetchIp();
-  }, [id]);
-
+  // --------------------------------------------------------------------------
+  // 8a) LOGIN user
+  // --------------------------------------------------------------------------
   const handleSignIn = useCallback(async () => {
     setLoading(true);
     setErrorMessage('');
 
     try {
-      // If needed, fetch IP address or remove if not needed
-
       if (!ipAddress) {
         setErrorMessage('Session Timeout. Please try again.');
         setLoading(false);
@@ -327,12 +326,12 @@ export function PackagesView({ id }: { id: string | undefined }) {
         }
       );
 
-      // Save user in cookies for 1 day
       Cookies.set('user', JSON.stringify(loginResponse.data), { expires: 1 });
-      // Update local state
       setLoggedInUser(loginResponse.data);
+
       showSnackbar('Login successful!', 'success');
-      // Move to next step
+
+      // Move from step 3 => 4
       handleNextActual();
     } catch (error) {
       setErrorMessage('Login failed. Please try again.');
@@ -340,11 +339,11 @@ export function PackagesView({ id }: { id: string | undefined }) {
     } finally {
       setLoading(false);
     }
-  }, [email, password]);
+  }, [email, password, ipAddress]);
 
-  // ------------------------------------------------------------------------------
-  // 6b) REGISTER user
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 8b) REGISTER user
+  // --------------------------------------------------------------------------
   async function handleRegister() {
     if (!email || !name || !password) {
       showSnackbar('Please fill all fields (email, name, password).');
@@ -365,7 +364,10 @@ export function PackagesView({ id }: { id: string | undefined }) {
       });
       Cookies.set('user', JSON.stringify(resp.data), { expires: 1 });
       setLoggedInUser(resp.data);
+
       showSnackbar('Registration successful!', 'success');
+
+      // Move from step 3 => 4
       handleNextActual();
     } catch (err) {
       console.error(err);
@@ -373,9 +375,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
     }
   }
 
-  // ------------------------------------------------------------------------------
-  // 7) Final Step => Checkout
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 9) Final Step => Checkout (Step 4)
+  // --------------------------------------------------------------------------
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Stripe' | 'Paypro'>('Stripe');
 
@@ -394,31 +396,24 @@ export function PackagesView({ id }: { id: string | undefined }) {
       const prType = uploadChoice === 'write' ? 'IMCWire Written' : 'Self-Written';
       const paymentStatus = 'unpaid';
 
-      // ✅ Ensure discount applies **only** to "product" plans, NOT "package"
       const isProduct = planType === 'product';
+
+      // Base total *before* discount
       const totalPlanPrice =
         basePlanPrice +
         additionalCategoriesCost +
         additionalCountriesCost +
         totalTranslationCost +
         writeCost;
-      // ✅ Shows the total plan price before applying any discount.
 
-      const discountedBasePrice = Math.max(0, basePlanPrice - discount);
-      // ✅ Applies discount only to base plan price (not additional costs).
-
-      const total_price =
-        discountedBasePrice +
-        additionalCategoriesCost +
-        additionalCountriesCost +
-        totalTranslationCost +
-        writeCost;
-      // ✅ Final total after applying discount.
+      // Discount only applies to 'package'
+      const discountedBasePrice = isProduct ? basePlanPrice : Math.max(0, basePlanPrice - discount);
 
       const additionalCosts =
         additionalCategoriesCost + additionalCountriesCost + totalTranslationCost + writeCost;
 
-      // const total_price = Math.max(0, discountedPlanPrice + additionalCosts);
+      // Final total
+      const total_price = discountedBasePrice + additionalCosts;
 
       const payload = {
         plan_id: planId,
@@ -442,7 +437,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
         ip_address: ipAddress,
       };
 
-      // API call
       const token = loggedInUser?.token || '';
       const resp = await axios.post(`${BASE_URL}/v1/pr/submit-order`, payload, {
         headers: {
@@ -461,18 +455,19 @@ export function PackagesView({ id }: { id: string | undefined }) {
     }
   }
 
-  // ------------------------------------------------------------------------------
-  // 8) Step Navigation
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 10) Step Navigation: "Next" and "Back"
+  // --------------------------------------------------------------------------
   function handleNext() {
-    // Step 1
+    // Step 1 check
     if (currentStep === 1) {
       if (selectedCategories.length === 0 || selectedCountries.length === 0) {
         showSnackbar('Please select at least one Category and one Country before proceeding.');
         return;
       }
     }
-    // Step 2
+
+    // Step 2 check
     if (currentStep === 2) {
       if (uploadChoice === '') {
         showSnackbar('Please select "Write & Publication" or "Upload PR" before proceeding.');
@@ -480,40 +475,35 @@ export function PackagesView({ id }: { id: string | undefined }) {
       }
     }
 
-    // If user is NOT logged in & we are on step 3 => Register/Login
-    const lastStepId = steps[steps.length - 1].id; // 3 or 4
-    if (!isAuthenticated && currentStep === 3) {
+    // Step 3 => if user is NOT logged in, do login/register
+    if (currentStep === 3 && !isAuthenticated) {
       if (showLogin) {
-        // in "Login" mode
         handleSignIn();
-        return;
+      } else {
+        handleRegister();
       }
-      // in "Register" mode
-      handleRegister();
       return;
     }
 
-    // Otherwise, move to next
+    // Otherwise, go next
     handleNextActual();
   }
 
   function handleNextActual() {
-    // Move to next step if not the last
-    const maxStepId = steps[steps.length - 1].id;
-    if (currentStep < maxStepId) {
-      setCurrentStep(currentStep + 1);
+    if (currentStep < 4) {
+      setCurrentStep((prev) => prev + 1);
     }
   }
 
   function handleBack() {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   }
 
-  // ------------------------------------------------------------------------------
-  // 9) Render Step 1
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 11) Render Step 1
+  // --------------------------------------------------------------------------
   function renderStepOne() {
     return (
       <div className="bg-white shadow-md rounded-lg p-6">
@@ -546,7 +536,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
                   </option>
                 ))}
               </select>
-              {/* Custom Dropdown Arrow with Padding */}
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                   <g fill="none" fillRule="evenodd">
@@ -617,7 +606,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
                   </option>
                 ))}
               </select>
-              {/* Custom Dropdown Arrow */}
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                   <g fill="none" fillRule="evenodd">
@@ -693,9 +681,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
     );
   }
 
-  // ------------------------------------------------------------------------------
-  // 10) Render Step 2
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 12) Render Step 2
+  // --------------------------------------------------------------------------
   function renderStepTwo() {
     return (
       <Card className="p-6 w-full">
@@ -751,17 +739,16 @@ export function PackagesView({ id }: { id: string | undefined }) {
     );
   }
 
-  // ------------------------------------------------------------------------------
-  // 11) Render Step 3 => Register or Login (if not logged in)
-  //     If user is logged in, step 3 is actually the Checkout
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 13) Render Step 3 => Register or Login
+  // --------------------------------------------------------------------------
   function renderRegisterOrLogin() {
     return (
       <Card className="p-6 w-full">
         <h2 className="text-xl font-semibold mb-4">Register or Login</h2>
 
         {/* Toggle between Register or Login */}
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb=6">
           <Button
             variant={!showLogin ? 'contained' : 'outlined'}
             onClick={() => {
@@ -783,7 +770,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
           </Button>
         </div>
 
-        {/* Error message if any */}
         {errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorMessage}
@@ -873,9 +859,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
     );
   }
 
-  // ------------------------------------------------------------------------------
-  // 12) Render Final Checkout
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // 14) Render Step 4 => Checkout
+  // --------------------------------------------------------------------------
   function renderCheckout() {
     return (
       <Card className="p-6 w-full">
@@ -902,8 +888,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
                 </>
               }
             />
-            {/* <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" /> */}
-            {/* Only show PayPro if finalTotal is less than or equal to $250 */}
+            {/* Show Paypro if <= $250 */}
             {finalTotal <= 250 && (
               <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" />
             )}
@@ -949,14 +934,12 @@ export function PackagesView({ id }: { id: string | undefined }) {
     );
   }
 
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // MAIN RENDER
-  // ------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   return (
     <DashboardContent>
-      {basePlanPrice === 0 ? (
-        ''
-      ) : (
+      {basePlanPrice === 0 ? null : (
         <>
           <Box display="flex" alignItems="center" mb={5}>
             <Typography variant="h4" flexGrow={1} sx={{ pl: 3 }}>
@@ -973,6 +956,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
               {snackbarMessage}
             </Alert>
           </Snackbar>
+
           <Box>
             <Grid container spacing={2}>
               {/* STEP TIMELINE */}
@@ -989,20 +973,20 @@ export function PackagesView({ id }: { id: string | undefined }) {
                             {index !== steps.length - 1 && (
                               <div
                                 className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%+16px)] transition-colors duration-300
-                              ${currentStep > step.id ? 'bg-purple-800' : 'bg-gray-200'}`}
+                                  ${currentStep > step.id ? 'bg-purple-800' : 'bg-gray-200'}`}
                               />
                             )}
                             {/* Circle + Text */}
                             <div className="flex items-center gap-3 relative z-10">
                               <div
                                 className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-300
-                              ${
-                                step.id === currentStep
-                                  ? 'border-purple-600 bg-white'
-                                  : step.id < currentStep
-                                    ? 'border-purple-600 bg-purple-800'
-                                    : 'border-gray-300 bg-white'
-                              }`}
+                                  ${
+                                    step.id === currentStep
+                                      ? 'border-purple-600 bg-white'
+                                      : step.id < currentStep
+                                        ? 'border-purple-600 bg-purple-800'
+                                        : 'border-gray-300 bg-white'
+                                  }`}
                               >
                                 {step.id === currentStep && (
                                   <div className="w-2.5 h-2.5 rounded-full bg-purple-800" />
@@ -1010,7 +994,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
                               </div>
                               <span
                                 className={`text-xs font-medium transition-colors duration-300
-                              ${step.id === currentStep ? 'text-purple-600' : 'text-gray-500'}`}
+                                  ${step.id === currentStep ? 'text-purple-600' : 'text-gray-500'}`}
                               >
                                 {step.name}
                               </span>
@@ -1027,21 +1011,12 @@ export function PackagesView({ id }: { id: string | undefined }) {
               <Grid item lg={6} xl={5} className="w-full">
                 {currentStep === 1 && renderStepOne()}
                 {currentStep === 2 && renderStepTwo()}
-
-                {/* If user is logged in, step 3 => Checkout */}
-                {isAuthenticated && currentStep === 3 && renderCheckout()}
-
-                {/* If user is NOT logged in, step 3 => Register/Login, step 4 => Checkout */}
-                {!isAuthenticated && (
-                  <>
-                    {currentStep === 3 && renderRegisterOrLogin()}
-                    {currentStep === 4 && renderCheckout()}
-                  </>
-                )}
+                {currentStep === 3 &&
+                  (isAuthenticated ? renderCheckout() : renderRegisterOrLogin())}
+                {currentStep === 4 && renderCheckout()}
               </Grid>
 
               {/* SIDE CARD (Price Summary) */}
-              {/* SIDE CARD (Order Summary with Coupon Code) */}
               <Grid item lg={6} xl={4} className="w-full">
                 <OrderSummary
                   basePlanPrice={basePlanPrice}
@@ -1050,12 +1025,13 @@ export function PackagesView({ id }: { id: string | undefined }) {
                   totalTranslationCost={totalTranslationCost}
                   writeCost={writeCost}
                   planType={planType}
-                  discount={discount} // ✅ Pass discount
-                  setDiscount={setDiscount} // ✅ Allow setting discount from OrderSummary
+                  discount={discount}
+                  setDiscount={setDiscount}
                 />
               </Grid>
             </Grid>
           </Box>
+
           <Dialog
             open={openTermsDialog}
             onClose={handleCloseTermsDialog}
@@ -1069,7 +1045,6 @@ export function PackagesView({ id }: { id: string | undefined }) {
               },
             }}
           >
-            {/* Header with a Gradient Background and Close Icon */}
             <Box
               sx={{
                 background: 'linear-gradient(45deg, #924BC3 30%, #21CBF3 90%)',
@@ -1083,17 +1058,8 @@ export function PackagesView({ id }: { id: string | undefined }) {
               <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
                 Terms and Conditions
               </Typography>
-              {/* <IconButton onClick={handleCloseTermsDialog} sx={{ color: 'white' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                  <path
-                    fill="#ff0808"
-                    d="m13.41 12l4.3-4.29a1 1 0 1 0-1.42-1.42L12 10.59l-4.29-4.3a1 1 0 0 0-1.42 1.42l4.3 4.29l-4.3 4.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l4.29-4.3l4.29 4.3a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42Z"
-                  />
-                </svg>
-              </IconButton> */}
             </Box>
 
-            {/* Content Area */}
             <DialogContent
               dividers
               sx={{
@@ -1101,7 +1067,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
                 p: 3,
               }}
             >
-              {/* Non-Refundable Payment Policy Section */}
+              {/* Terms Sections */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                   Non-Refundable Payment Policy
@@ -1110,50 +1076,44 @@ export function PackagesView({ id }: { id: string | undefined }) {
                   All payments made for our press release distribution services are non-refundable.
                   This policy is enforced due to the upfront costs we incur, including payments to
                   third-party websites for publication slots. Once a press release is processed for
-                  distribution across our extensive network, including premier sites such as Yahoo
-                  Finance, Bloomberg, MarketWatch, among others, we cannot offer refunds as we do
-                  not receive refunds from these websites.
+                  distribution across our extensive network, we cannot offer refunds as we do not
+                  receive refunds from these websites.
                 </Typography>
               </Box>
               <Divider sx={{ my: 2 }} />
 
-              {/* Publication on Specific Topics Section */}
               <Box sx={{ my: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                   Publication on Specific Topics
                 </Typography>
                 <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
                   Please note that if your press release covers topics such as Cryptocurrency, NFTs,
-                  Mining, Finance, Gambling, Casinos, and similar areas, we will submit your article
-                  to the websites you select. However, if your content is rejected three times by
-                  these platforms, we cannot refund your payment. We urge you to choose your topics
-                  and target websites carefully and consult with our support team if you have any
-                  questions or require guidance.{' '}
+                  Mining, Finance, Gambling, Casinos, etc., we will submit your article to the
+                  websites you select. However, if your content is rejected three times by these
+                  platforms, we cannot refund your payment.
                 </Typography>
               </Box>
               <Divider sx={{ my: 2 }} />
 
-              {/* Additional Details Section */}
               <Box sx={{ my: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                   Additional Details
                 </Typography>
                 <Typography variant="body1" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
                   For further details about our services and specific policies, please visit our FAQ
-                  section or contact our support team for assistance.{' '}
+                  or contact our support team.{' '}
                   <a
                     href="https://imcwire.com/contact/"
                     style={{ color: 'blue', textDecoration: 'underline' }}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <b> Contact Us</b>
+                    <b>Contact Us</b>
                   </a>
                 </Typography>
               </Box>
             </DialogContent>
 
-            {/* Actions Area */}
             <DialogActions
               sx={{
                 backgroundColor: '#fafafa',
@@ -1173,6 +1133,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
   );
 }
 
+// --------------------------------------------------------------------------
+// 15) Order Summary (unchanged except for any direct references above)
+// --------------------------------------------------------------------------
 function OrderSummary({
   basePlanPrice,
   additionalCategoriesCost,
@@ -1181,7 +1144,7 @@ function OrderSummary({
   writeCost,
   planType,
   discount,
-  setDiscount, // ✅ Receive setDiscount
+  setDiscount,
 }: {
   basePlanPrice: number;
   additionalCategoriesCost: number;
@@ -1190,7 +1153,7 @@ function OrderSummary({
   writeCost: number;
   planType: string;
   discount: number;
-  setDiscount: React.Dispatch<React.SetStateAction<number>>; // ✅ Allow updating discount
+  setDiscount: React.Dispatch<React.SetStateAction<number>>;
 }) {
   const [couponCode, setCouponCode] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -1234,7 +1197,6 @@ function OrderSummary({
       if (response.data.status === 'active') {
         const discountAmount = (basePlanPrice * parseFloat(response.data.discountPercentage)) / 100;
 
-        // ✅ Coupons only apply to "package" plans, NOT "product" plans
         if (planType === 'package') {
           setDiscount(discountAmount);
           setIsCouponApplied(true);
@@ -1263,25 +1225,17 @@ function OrderSummary({
     showSnackbar('Coupon removed. Full price restored.', 'success');
   }
 
-  const totalBeforeDiscount = useMemo(
-    () =>
-      basePlanPrice +
-      additionalCategoriesCost +
-      additionalCountriesCost +
-      totalTranslationCost +
-      writeCost,
-    [
-      basePlanPrice,
-      additionalCategoriesCost,
-      additionalCountriesCost,
-      totalTranslationCost,
-      writeCost,
-    ]
-  );
+  const totalBeforeDiscount =
+    basePlanPrice +
+    additionalCategoriesCost +
+    additionalCountriesCost +
+    totalTranslationCost +
+    writeCost;
 
-  // ✅ Apply discount only to basePlanPrice, not additional costs
+  // Apply discount only to basePlanPrice, not additional costs
   const discountedPlanPrice =
     planType === 'package' ? Math.max(0, basePlanPrice - discount) : basePlanPrice;
+
   const finalTotal =
     discountedPlanPrice +
     additionalCategoriesCost +

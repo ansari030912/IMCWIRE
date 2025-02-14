@@ -1610,7 +1610,6 @@ export function UpdateEntireOrderStatus({
     </Box>
   );
 }
-
 /* -------------------------------------------
    10) Industry Categories
 -------------------------------------------- */
