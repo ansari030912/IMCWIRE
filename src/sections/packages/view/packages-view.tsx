@@ -103,7 +103,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [ipAddress, setIpAddress] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const [planNumberOfPr, setPlanNumberOfPr] = useState<number>(0);
   // --------------------------------------------------------------------------
   // 5) Fetch the plan on mount
   // --------------------------------------------------------------------------
@@ -122,6 +122,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
           setPlanType(planData.type);
           setBasePlanPrice(Number(planData.totalPlanPrice));
           setPlanId(planData.id);
+          setPlanNumberOfPr(planData.numberOfPR || 0);
         }
       } catch (error) {
         setErrorMessage('Not a valid plan. Please try again.');
@@ -282,7 +283,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   // 7) Step 2: "Write from us" => +$120 or "Upload doc" => $0
   // --------------------------------------------------------------------------
   const [uploadChoice, setUploadChoice] = useState<'write' | 'upload' | ''>('');
-  const writeCost = uploadChoice === 'write' ? 120 : 0;
+  const writeCost = uploadChoice === 'write' ? 120 * planNumberOfPr : 0;
   const finalTotal = partialTotal + writeCost;
 
   // --------------------------------------------------------------------------

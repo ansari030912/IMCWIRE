@@ -135,7 +135,7 @@ export function AddCustomOrderView() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<ICountry[]>([]);
   const [ipAddress, setIpAddress] = useState('');
-  console.log("🚀 ~ AddCustomOrderView ~ ipAddress:", ipAddress)
+  console.log('🚀 ~ AddCustomOrderView ~ ipAddress:', ipAddress);
 
   useEffect(() => {
     const fetchIp = async () => {
@@ -189,10 +189,10 @@ export function AddCustomOrderView() {
   const totalTranslationCost = translationsSelected * translationCost;
   const partialTotal =
     totalPlanPrice + additionalCategoriesCost + additionalCountriesCost + totalTranslationCost;
-
+  const numberOfPrSelect = Number(planDetails.numberOfPR);
   // --- Step 3: PR Option ---
   const [prOption, setPrOption] = useState<'IMCWire Written' | 'Self-Written' | ''>('');
-  const imcwireCost = prOption === 'IMCWire Written' ? 120 : 0;
+  const imcwireCost = prOption === 'IMCWire Written' ? 120 * numberOfPrSelect : 0;
   const finalTotal = partialTotal + imcwireCost;
 
   // --- Step 4: User & Payment Details ---

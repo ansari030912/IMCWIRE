@@ -261,11 +261,11 @@ export function AddCustomPlanView() {
   const totalTranslationCost = translationsSelected * translationCost;
   const partialTotal =
     totalPlanPrice + additionalCategoriesCost + additionalCountriesCost + totalTranslationCost;
-
+  const numberOfPrSelected = Number(planDetails.numberOfPR);
   // -- Step 3: PR Option --
   // "IMCWIRE (Write & Publication)" adds $120; "Self Written" adds $0.
   const [prOption, setPrOption] = useState<'IMCWire Written' | 'Self-Written' | ''>('');
-  const imcwireCost = prOption === 'IMCWire Written' ? 120 : 0;
+  const imcwireCost = prOption === 'IMCWire Written' ? 120 * numberOfPrSelected : 0;
   const finalTotal = partialTotal + imcwireCost;
 
   // ============================
@@ -833,7 +833,7 @@ export function AddCustomPlanView() {
                           </TableCell>
 
                           <TableCell align="center">
-                            ${parseFloat(order.plan.totalPlanPrice)}
+                            ${parseFloat(order.total_price)}
                           </TableCell>
 
                           <TableCell align="center">
