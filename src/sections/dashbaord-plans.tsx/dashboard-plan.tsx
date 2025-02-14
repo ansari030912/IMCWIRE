@@ -67,7 +67,7 @@ const DashboardPlanView = () => {
         <section className="pt-10">
           <Grid container spacing={4} justifyContent="start">
             {plans
-              .filter((plan) => plan.type === 'package')
+              .filter((plan) => plan.type === 'package' || plan.activate_plan === 1)
               .slice(0, 3)
               .map(
                 (plan, index) =>
