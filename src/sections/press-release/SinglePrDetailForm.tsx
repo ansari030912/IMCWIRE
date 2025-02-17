@@ -299,16 +299,73 @@ const SinglePrDetailsForm: React.FC<SinglePrDetailsFormProps> = ({
             </Grid>
           </Grid>
         ) : (
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              type="file"
-              label="Upload PDF"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              onChange={handleFileChange}
-            />
-          </Box>
+          // <Box sx={{ mt: 2, position: 'relative' }}>
+          //   <TextField
+          //     fullWidth
+          //     type="file"
+          //     label="Upload PDF"
+          //     variant="outlined"
+          //     InputLabelProps={{ shrink: true }}
+          //     onChange={handleFileChange}
+          //     InputProps={{
+          //       startAdornment: (
+          //         <Iconify
+          //           icon="material-symbols:picture-as-pdf-outline"
+          //           width={24}
+          //           height={24}
+          //           color="#ccc"
+          //           style={{ marginRight: '8px' }}
+          //         />
+          //       ),
+          //     }}
+          //   />
+          // </Box>
+          <Box sx={{ mt: 2, position: 'relative' }}>
+          <TextField
+            fullWidth
+            type="file"
+            label="Upload PDF"
+            variant="outlined"
+            InputLabelProps={{ shrink: true }}
+            onChange={handleFileChange}
+            InputProps={{
+              startAdornment: (
+                <Iconify
+                  icon="material-symbols:picture-as-pdf-outline"
+                  width={24}
+                  height={24}
+                  color="#ccc"
+                  style={{ marginRight: '8px' }}
+                />
+              ),
+              endAdornment: (
+                // eslint-disable-next-line jsx-a11y/label-has-associated-control
+                <label htmlFor="upload-button">
+                  <input
+                    id="upload-button"
+                    type="file"
+                    hidden
+                    onChange={handleFileChange}
+                  />
+                  <IconButton component="span" edge="end">
+                    <Iconify
+                      icon="mdi:cursor-default-click"
+                      width={24}
+                      height={24}
+                      color="primary.main"
+                    />
+                  </IconButton>
+                </label>
+              ),
+              sx: {
+                cursor: 'pointer',
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+          />
+        </Box>
         )}
         <Box sx={{ mt: 3, display: 'flex', alignContent: 'start', gap: 2 }}>
           <FormControl fullWidth>
