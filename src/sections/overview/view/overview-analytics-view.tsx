@@ -613,8 +613,8 @@ export function OverviewAnalyticsView() {
             <Grid xs={12} sm={6} md={3}>
               <AnalyticsWidgetSummary
                 title="THIS MONTH"
-                percent={salesData?.thisWeek}
-                total={salesData?.thisWeek}
+                percent={salesData?.thisMonth}
+                total={salesData?.thisMonth}
                 color="secondary"
                 icon={
                   <svg
