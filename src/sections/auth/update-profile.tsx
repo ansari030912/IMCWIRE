@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { BASE_URL } from 'src/components/Urls/BaseApiUrls';
+import { BASE_URL, X_API_KEY } from 'src/components/Urls/BaseApiUrls';
 
 // ----------------------------------------------------------------------
 
@@ -79,14 +79,15 @@ export function UpdateProfileView() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${BASE_URL}/v1/account/update`,
+      const response = await axios.put(
+        `${BASE_URL}/v1/account/update`, 
         {
           currentPassword,
           newPassword,
         },
         {
           headers: {
+            'X-API-Key': X_API_KEY,
             Authorization: `Bearer ${token}`,
           },
         }
