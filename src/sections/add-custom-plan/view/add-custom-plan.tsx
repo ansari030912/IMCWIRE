@@ -82,7 +82,32 @@ export function AddCustomPlanView() {
   const cookieUser = Cookies.get('user') ? JSON.parse(Cookies.get('user') || '{}') : null;
   const isAuthenticated = Boolean(cookieUser && cookieUser.token && cookieUser.isActive);
   const [loggedInUser] = useState<any>(cookieUser || null);
-
+  const handleDeactivateOrder = async (perma: string) => {
+    const url = `${BASE_URL}/v1/pr/update-order-plan/${perma}`;
+    const payload = {
+      is_active: 0,
+      activate_plan: 0
+    };
+  
+    try {
+      const response = await axios.put(url, payload, {
+        headers: {
+          'X-API-Key': X_API_KEY,
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.status === 200) {
+        showSnackbar('Order deactivated successfully!', 'success');
+        fetchCustomOrders(); // Refresh the list of orders
+      } else {
+        showSnackbar('Failed to deactivate order.', 'error');
+      }
+    } catch (error) {
+      console.error('Error deactivating order:', error);
+      showSnackbar('Error deactivating order.', 'error');
+    }
+  };
+  
   // --------------------------
   // 2) Snackbar for Messages
   // --------------------------
@@ -796,6 +821,7 @@ export function AddCustomPlanView() {
                   </TableHead>
                   <TableBody>
                     {customOrders
+                    .filter(order => order.plan.activate_plan !== 0)
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       .map((order) => (
                         <TableRow key={order.orderId}>
@@ -841,14 +867,24 @@ export function AddCustomPlanView() {
                           </TableCell>
                           <TableCell align="center">{order.plan.numberOfPR}</TableCell>
                           <TableCell align="center">
+                            <div className='flex flex-col gap-2'>
+
                             <Button
                               variant="outlined"
                               onClick={() => {
                                 navigator.clipboard.writeText(order.invoiceUrl);
                               }}
-                            >
+                              >
                               Copy Invoice URL
                             </Button>
+                            <Button
+    variant="outlined"
+    color="error"
+    onClick={() => handleDeactivateOrder(order.perma)}
+    >
+    Deactivate
+  </Button>
+    </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -857,7 +893,7 @@ export function AddCustomPlanView() {
               </TableContainer>
               <TablePagination
                 component="div"
-                count={customOrders.length}
+                count={customOrders.filter(order => order.plan.activate_plan !== 0).length}
                 page={page}
                 rowsPerPage={rowsPerPage}
                 onPageChange={handleChangePage}

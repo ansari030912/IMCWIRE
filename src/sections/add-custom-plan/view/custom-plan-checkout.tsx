@@ -89,6 +89,7 @@ export function CustomPlanCheckOutView({ id }: IProps) {
   // 2) Snackbar for Messages
   // --------------------------
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [eror, setEror] = useState("");
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const showSnackbar = (message: string, severity: 'error' | 'success' = 'error') => {
@@ -117,7 +118,8 @@ export function CustomPlanCheckOutView({ id }: IProps) {
       }
     } catch (error) {
       console.error('Error fetching custom order:', error);
-      showSnackbar('Error fetching custom order data', 'error');
+      setEror(error.response.data.message)
+      showSnackbar(error.response.data.message, 'error');
     }
   };
   useEffect(() => {
@@ -259,7 +261,8 @@ export function CustomPlanCheckOutView({ id }: IProps) {
       }, 3000);
     } catch (error) {
       console.error(error);
-      showSnackbar('Checkout failed. Please try again.', 'error');
+      setEror(error.message)
+      showSnackbar('Checkout failed. Please try again.', error.message);
     }
   };
 
@@ -433,7 +436,7 @@ export function CustomPlanCheckOutView({ id }: IProps) {
           )}
         </>
       ) : (
-        <Alert severity="info">Loading custom order data...</Alert>
+        <Alert severity="info">{eror}</Alert>
       )}
     </Card>
   );
