@@ -29,7 +29,7 @@ export function NavUpgrade({ sx, ...other }: StackProps) {
       </Typography>
       <Box
         component="img"
-        alt="Minimal dashboard"
+        alt="Imcwire dashboard"
         src="/assets/illustrations/vendor.gif"
         sx={{ width: 200, my: 2 }}
       />
