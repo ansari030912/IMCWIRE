@@ -6,23 +6,24 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
-  Box,
-  Card,
-  Grid,
   Alert,
+  Box,
   Button,
-  Dialog,
-  Divider,
+  Card,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Divider,
+  FormControlLabel,
+  Grid,
   Snackbar,
   TextField,
   Typography,
-  DialogActions,
-  DialogContent,
-  FormControlLabel,
+  CircularProgress,
 } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -89,7 +90,7 @@ export function CustomPlanCheckOutView({ id }: IProps) {
   // 2) Snackbar for Messages
   // --------------------------
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [eror, setEror] = useState("");
+  const [eror, setEror] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'error' | 'success'>('error');
   const showSnackbar = (message: string, severity: 'error' | 'success' = 'error') => {
@@ -118,7 +119,7 @@ export function CustomPlanCheckOutView({ id }: IProps) {
       }
     } catch (error) {
       console.error('Error fetching custom order:', error);
-      setEror(error.response.data.message)
+      setEror(error.response.data.message);
       showSnackbar(error.response.data.message, 'error');
     }
   };
@@ -223,19 +224,22 @@ export function CustomPlanCheckOutView({ id }: IProps) {
   // 6) Final Checkout
   // --------------------------
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const handleCheckout = async () => {
     if (!agreeToTerms) {
       showSnackbar('Please agree to the Terms and Conditions before checkout.', 'error');
       return;
     }
+    setCheckoutLoading(true);
+
     try {
       // Build payload from custom order data
       const payload = {
         plan_id: customOrder?.planData?.plan_id,
         prType: customOrder?.prType,
         pr_status: 'Pending',
-        payment_method: 'Stripe', // as provided
+        payment_method: 'Paypro', // as provided
         ip_address: ipAddress, // Replace with real IP if needed
         targetCountries: customOrder?.targetCountries.map((tc) => ({
           name: tc?.countryName,
@@ -258,11 +262,13 @@ export function CustomPlanCheckOutView({ id }: IProps) {
       const { paymentUrl } = resp.data;
       setTimeout(() => {
         window.location.href = paymentUrl;
-      }, 3000);
+      }, 2000);
+      setCheckoutLoading(false);
     } catch (error) {
       console.error(error);
-      setEror(error.message)
+      setEror(error.message);
       showSnackbar('Checkout failed. Please try again.', error.message);
+      setCheckoutLoading(false);
     }
   };
 
@@ -583,8 +589,28 @@ export function CustomPlanCheckOutView({ id }: IProps) {
         <Button onClick={handleBackStep} variant="outlined" color="primary">
           Back
         </Button>
-        <Button onClick={handleCheckout} variant="contained" color="primary">
-          Checkout
+        <Button
+          onClick={handleCheckout}
+          variant="contained"
+          color="primary"
+          disabled={checkoutLoading}
+          sx={{ position: 'relative', minWidth: '100px' }}
+        >
+          {checkoutLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px',
+                display: 'inline-block',
+              }}
+            >
+              <CircularProgress size={24} color="inherit" />
+            </Box>
+          )}
+          <span style={{ visibility: checkoutLoading ? 'hidden' : 'visible' }}>Checkout</span>
         </Button>
       </Box>
     </Card>

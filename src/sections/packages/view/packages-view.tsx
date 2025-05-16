@@ -27,6 +27,7 @@ import {
   DialogActions,
   DialogContent,
   FormControlLabel,
+  CircularProgress,
 } from '@mui/material';
 
 import { useRouter } from 'src/routes/hooks';
@@ -381,7 +382,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
   // --------------------------------------------------------------------------
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Stripe' | 'Paypro'>('Stripe');
-
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   async function handleCheckout() {
     if (!agreeToTerms) {
       showSnackbar('Please agree to the Terms and Conditions before checkout.');
@@ -392,6 +393,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
       showSnackbar('Error: Missing plan details. Please refresh and try again.', 'error');
       return;
     }
+    setCheckoutLoading(true);
 
     try {
       const prType = uploadChoice === 'write' ? 'IMCWire Written' : 'Self-Written';
@@ -449,10 +451,12 @@ export function PackagesView({ id }: { id: string | undefined }) {
       showSnackbar('PR submitted successfully! Redirecting...', 'success');
       setTimeout(() => {
         window.location.href = resp.data.paymentUrl;
-      }, 3000);
+      }, 2000);
+      setCheckoutLoading(false);
     } catch (error) {
       console.error(error);
       showSnackbar('Checkout failed. Please try again.', 'error');
+      setCheckoutLoading(false);
     }
   }
 
@@ -471,7 +475,8 @@ export function PackagesView({ id }: { id: string | undefined }) {
     // Step 2 check
     if (currentStep === 2) {
       if (uploadChoice === '') {
-        showSnackbar('Please select "Write & Publication" or "Upload PR" before proceeding.');
+        // showSnackbar('Please select "Write & Publication" or "Upload PR" before proceeding.');
+        showSnackbar('Please select "Upload PR" before proceeding.');
         return;
       }
     }
@@ -695,7 +700,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
         </Typography>
 
         {/* Write & Publication = $120 */}
-        <div
+        {/* <div
           onClick={() => setUploadChoice('write')}
           className={`cursor-pointer mb-4 p-4 rounded shadow-sm ${
             uploadChoice === 'write' ? 'bg-purple-800 text-white' : 'bg-gray-100 text-gray-800'
@@ -706,7 +711,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
           <Typography variant="body2">
             Our professional journalists will research and write your release
           </Typography>
-        </div>
+        </div> */}
 
         {/* Upload doc */}
         <div
@@ -878,9 +883,9 @@ export function PackagesView({ id }: { id: string | undefined }) {
           <FormLabel component="legend">Select Payment Method:</FormLabel>
           <RadioGroup
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value as 'Stripe' | 'Paypro')}
+            onChange={(e) => setPaymentMethod(e.target.value as 'Paypro' | 'Stripe')}
           >
-            <FormControlLabel
+            {/* <FormControlLabel
               value="Stripe"
               control={<Radio />}
               label={
@@ -888,7 +893,7 @@ export function PackagesView({ id }: { id: string | undefined }) {
                   Stripe <span className="text-red-500">Recommended</span>
                 </>
               }
-            />
+            /> */}
             {/* Show Paypro if <= $250 */}
             {finalTotal <= 250 && (
               <FormControlLabel value="Paypro" control={<Radio />} label="PayPro" />
@@ -924,12 +929,29 @@ export function PackagesView({ id }: { id: string | undefined }) {
           >
             Back
           </button>
-          <button
+          <Button
             onClick={handleCheckout}
-            className="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-700 cursor-pointer"
+            variant="contained"
+            color="primary"
+            disabled={checkoutLoading}
+            sx={{ position: 'relative', minWidth: '100px' }}
           >
-            Checkout
-          </button>
+            {checkoutLoading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  marginTop: '-12px',
+                  marginLeft: '-12px',
+                  display: 'inline-block',
+                }}
+              >
+                <CircularProgress size={24} color="inherit" />
+              </Box>
+            )}
+            <span style={{ visibility: checkoutLoading ? 'hidden' : 'visible' }}>Checkout</span>
+          </Button>
         </div>
       </Card>
     );
@@ -1307,10 +1329,10 @@ function OrderSummary({
           <span className="font-bold text-red-500">+${totalTranslationCost}</span>
         </div>
 
-        <div className="bg-gray-100 p-2 flex justify-between">
+        {/* <div className="bg-gray-100 p-2 flex justify-between">
           <span className="text-gray-500 font-bold">Write & Publication:</span>
           <span className="font-bold text-red-500">+${writeCost}</span>
-        </div>
+        </div> */}
 
         {discount > 0 && (
           <div className="bg-white p-2 flex justify-between text-green-600 font-bold">

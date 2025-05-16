@@ -12,7 +12,6 @@ export default function Page() {
       <Helmet>
         <title> {`Thank You - ${CONFIG.appName}`}</title>
       </Helmet>
-
       <ThankyouPaypro />
     </>
   );
